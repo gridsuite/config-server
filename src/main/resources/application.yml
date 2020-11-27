@@ -1,0 +1,15 @@
+server :
+  port : 5011
+
+spring:
+  rabbitmq:
+    addresses: localhost
+    port: 5672
+
+  cloud:
+    function:
+      definition: publishConfigUpdate
+    stream:
+      bindings:
+        publishConfigUpdate-out-0:
+          destination: config.update

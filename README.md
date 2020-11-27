@@ -1,1 +1,1 @@
-# config-ui
+# config-server
