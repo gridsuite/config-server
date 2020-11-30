@@ -1,5 +1,5 @@
 server :
-  port : 5011
+  port : 5025
 
 spring:
   rabbitmq:
