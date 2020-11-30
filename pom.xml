@@ -19,7 +19,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>org.example</groupId>
+    <groupId>org.gridsuite</groupId>
     <artifactId>gridsuite-config-server</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -27,6 +27,12 @@
     <name>Config Server</name>
     <description>Config Server</description>
     <url>http://www.gridsuite.org/</url>
+
+    <scm>
+        <connection>scm:git:https://github.com/gridsuite/config-server</connection>
+        <developerConnection>scm:git:https://github.com/gridsuite/config-server</developerConnection>
+        <url>https://github.com/gridsuite/config-server</url>
+    </scm>
 
     <developers>
         <developer>
@@ -44,6 +50,27 @@
 
         <mock.web.server.version>4.6.0</mock.web.server.version>
     </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencyManagement>
         <dependencies>
