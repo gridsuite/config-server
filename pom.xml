@@ -116,8 +116,8 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+            <scope>runtime</scope>
         </dependency>
-
         <!-- Test dependencies -->
         <dependency>
             <groupId>com.github.nosan</groupId>
@@ -148,6 +148,7 @@
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>
             <version>${mock.web.server.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

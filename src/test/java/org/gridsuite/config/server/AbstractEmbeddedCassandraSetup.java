@@ -4,10 +4,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.griduite.config.server;
+package org.gridsuite.config.server;
 
-import org.gridsuite.config.CassandraConfig;
-import org.griduite.config.test.EmbeddedCassandraFactoryConfig;
+import org.gridsuite.config.test.EmbeddedCassandraFactoryConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.github.nosan.embedded.cassandra.api.connection.ClusterCassandraConnection;
 import org.springframework.test.context.ContextConfiguration;

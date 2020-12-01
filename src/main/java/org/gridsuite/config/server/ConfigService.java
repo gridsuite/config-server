@@ -4,11 +4,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.gridsuite.config;
+package org.gridsuite.config.server;
 
-import org.gridsuite.config.dto.ConfigInfos;
-import org.gridsuite.config.repository.ConfigInfosEntity;
-import org.gridsuite.config.repository.ConfigInfosRepository;
+import org.gridsuite.config.server.repository.ConfigInfosRepository;
+import org.gridsuite.config.server.dto.ConfigInfos;
+import org.gridsuite.config.server.repository.ConfigInfosEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.support.MessageBuilder;
@@ -46,26 +46,15 @@ public class ConfigService {
         this.configRepository = configRepository;
     }
 
-    Mono<ConfigInfos> getConfigUiParameters(String userId) {
-        Mono<ConfigInfosEntity> configUiInfosEntityMono = configRepository.findByUserId(userId);
-        return configUiInfosEntityMono.map(ConfigService::toConfigUiInfos)
-                .switchIfEmpty(initialiseDefaultParameters(userId).map(ConfigService::toConfigUiInfos));
+    Mono<ConfigInfos> getConfigParameters(String userId) {
+        Mono<ConfigInfosEntity> configInfosEntityMono = configRepository.findByUserId(userId);
+        return configInfosEntityMono.map(ConfigService::toConfigInfos)
+                .switchIfEmpty(initialiseDefaultParameters(userId).map(ConfigService::toConfigInfos));
     }
 
     private Mono<ConfigInfosEntity> initialiseDefaultParameters(String userId) {
         ConfigInfosEntity newConfigInfosEntity = ConfigInfosEntity.builder()
                 .userId(userId)
-                .substationLayout("horizontal")
-                .lineFlowMode("feeders")
-                .lineFlowColorMode("nominalVoltage")
-                .centerLabel(false)
-                .diagonalLabel(false)
-                .lineFlowAlertThreshold(100)
-                .lineFullPath(true)
-                .lineParallelPath(true)
-                .theme("Dark")
-                .useName(true)
-                .viewOverloadsTable(false)
                 .build();
         return configRepository.save(newConfigInfosEntity);
     }
@@ -73,16 +62,17 @@ public class ConfigService {
     Mono<ConfigInfos> updateParameters(String userId, ConfigInfos configInfos) {
         Mono<ConfigInfosEntity> configInfosEntityMono = configRepository.findByUserId(userId);
         return configInfosEntityMono.flatMap(configInfosEntity -> {
-            updateConfigUiInfosEntity(configInfosEntity, configInfos);
-            configUpdatePublisher.onNext(MessageBuilder.withPayload("")
+            updateConfigInfosEntity(configInfosEntity, configInfos);
+            return configRepository.save(configInfosEntity).doOnSuccess(e ->
+                    configUpdatePublisher.onNext(MessageBuilder.withPayload("")
                     .setHeader(HEADER_USER_ID, userId)
-                    .build());
-            return configRepository.save(configInfosEntity);
-        }).map(ConfigService::toConfigUiInfos);
+                    .build()));
+        }).map(ConfigService::toConfigInfos);
     }
 
-    private static ConfigInfos toConfigUiInfos(ConfigInfosEntity configInfosEntity) {
+    private static ConfigInfos toConfigInfos(ConfigInfosEntity configInfosEntity) {
         return ConfigInfos.builder()
+                .userId(configInfosEntity.getUserId())
                 .substationLayout(configInfosEntity.getSubstationLayout())
                 .lineFlowMode(configInfosEntity.getLineFlowMode())
                 .lineFlowColorMode(configInfosEntity.getLineFlowColorMode())
@@ -97,7 +87,7 @@ public class ConfigService {
                 .build();
     }
 
-    private static void updateConfigUiInfosEntity(ConfigInfosEntity configInfosEntity, ConfigInfos configInfos) {
+    private static void updateConfigInfosEntity(ConfigInfosEntity configInfosEntity, ConfigInfos configInfos) {
         if (configInfos.getTheme() != null) {
             configInfosEntity.setTheme(configInfos.getTheme());
         }

@@ -4,16 +4,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.gridsuite.config;
+
+package org.gridsuite.config.server;
 
 /**
- * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
+ * @author Abdelsalem HEDHILI <abdelsalem.hedhili at rte-france.com>
  */
+public final class CassandraConstants {
 
-final class ConfigApi {
+    public static final String KEYSPACE_CONFIG = "config";
 
-    private ConfigApi() {
+    private CassandraConstants() {
     }
-
-    static final String API_VERSION = "v1";
 }

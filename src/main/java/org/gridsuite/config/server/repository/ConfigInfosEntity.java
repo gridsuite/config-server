@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.gridsuite.config.repository;
+package org.gridsuite.config.server.repository;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,35 +30,46 @@ public class ConfigInfosEntity {
     private String userId;
 
     @Column("theme")
-    private String theme;
+    @Builder.Default
+    private String theme = "Dark";
 
     @Column("useName")
-    private Boolean useName;
+    @Builder.Default
+    private Boolean useName = true;
 
     @Column("centerLabel")
-    private Boolean centerLabel;
+    @Builder.Default
+    private Boolean centerLabel = false;
 
     @Column("diagonalLabel")
-    private Boolean diagonalLabel;
+    @Builder.Default
+    private Boolean diagonalLabel = false;
 
     @Column("lineFullPath")
-    private Boolean lineFullPath;
+    @Builder.Default
+    private Boolean lineFullPath = true;
 
     @Column("lineParallelPath")
-    private Boolean lineParallelPath;
+    @Builder.Default
+    private Boolean lineParallelPath = true;
 
     @Column("lineFlowMode")
-    private String lineFlowMode;
+    @Builder.Default
+    private String lineFlowMode = "feeders";
 
     @Column("lineFlowColorMode")
-    private String lineFlowColorMode;
+    @Builder.Default
+    private String lineFlowColorMode = "nominalVoltage";
 
     @Column("lineFlowAlertThreshold")
-    private Integer lineFlowAlertThreshold;
+    @Builder.Default
+    private Integer lineFlowAlertThreshold = 100;
 
     @Column("viewOverloadsTable")
-    private Boolean viewOverloadsTable;
+    @Builder.Default
+    private Boolean viewOverloadsTable = false;
 
     @Column("substationLayout")
-    private String substationLayout;
+    @Builder.Default
+    private String substationLayout = "horizontal";
 }
