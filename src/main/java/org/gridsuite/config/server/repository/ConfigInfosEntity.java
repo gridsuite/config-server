@@ -7,7 +7,6 @@
 package org.gridsuite.config.server.repository;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
@@ -23,7 +22,6 @@ import org.springframework.data.cassandra.core.mapping.Table;
 @Setter
 @AllArgsConstructor
 @Table("parameters")
-@Builder
 public class ConfigInfosEntity {
 
     @PrimaryKeyColumn(name = "userId", type = PrimaryKeyType.PARTITIONED)

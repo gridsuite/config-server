@@ -12,7 +12,6 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@Builder
 @EqualsAndHashCode
 public class ConfigInfos {
     String key;
