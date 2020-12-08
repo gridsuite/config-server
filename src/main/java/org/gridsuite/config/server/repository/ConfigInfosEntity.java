@@ -29,47 +29,9 @@ public class ConfigInfosEntity {
     @PrimaryKeyColumn(name = "userId", type = PrimaryKeyType.PARTITIONED)
     private String userId;
 
-    @Column("theme")
-    @Builder.Default
-    private String theme = "Dark";
+    @PrimaryKeyColumn(name = "configKey", type = PrimaryKeyType.CLUSTERED)
+    private String key;
 
-    @Column("useName")
-    @Builder.Default
-    private Boolean useName = true;
-
-    @Column("centerLabel")
-    @Builder.Default
-    private Boolean centerLabel = false;
-
-    @Column("diagonalLabel")
-    @Builder.Default
-    private Boolean diagonalLabel = false;
-
-    @Column("lineFullPath")
-    @Builder.Default
-    private Boolean lineFullPath = true;
-
-    @Column("lineParallelPath")
-    @Builder.Default
-    private Boolean lineParallelPath = true;
-
-    @Column("lineFlowMode")
-    @Builder.Default
-    private String lineFlowMode = "feeders";
-
-    @Column("lineFlowColorMode")
-    @Builder.Default
-    private String lineFlowColorMode = "nominalVoltage";
-
-    @Column("lineFlowAlertThreshold")
-    @Builder.Default
-    private Integer lineFlowAlertThreshold = 100;
-
-    @Column("viewOverloadsTable")
-    @Builder.Default
-    private Boolean viewOverloadsTable = false;
-
-    @Column("substationLayout")
-    @Builder.Default
-    private String substationLayout = "horizontal";
+    @Column("configValue")
+    private String value;
 }

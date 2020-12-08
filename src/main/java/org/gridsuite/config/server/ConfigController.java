@@ -13,7 +13,10 @@ import org.gridsuite.config.server.dto.ConfigInfos;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
@@ -32,14 +35,21 @@ public class ConfigController {
     @GetMapping(value = "/parameters", produces = "application/json")
     @Operation(summary = "get the values of configuration parameters")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The list of configuration parameters")})
-    public ResponseEntity<Mono<ConfigInfos>> getParameters(@RequestHeader("userId") String userId) {
+    public ResponseEntity<Flux<ConfigInfos>> getParameters(@RequestHeader("userId") String userId) {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId));
     }
 
     @PutMapping(value = "/parameters", produces = "application/json")
+    @Operation(summary = "update the values for a configuration parameters")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The parameters are updated")})
+    public ResponseEntity<Mono<ConfigInfos>> updateParams(@RequestHeader("userId") String userId, @RequestBody ConfigInfos configInfos) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateParameter(userId, configInfos));
+    }
+
+    @PutMapping(value = "/multiple-parameters", produces = "application/json")
     @Operation(summary = "update the values for a set of configuration parameters")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The parameters are updated")})
-    public ResponseEntity<Mono<ConfigInfos>> updateParams(@RequestHeader("userId") String userId, @RequestBody ConfigInfos configUiInfos) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateParameters(userId, configUiInfos));
+    public ResponseEntity<Flux<ConfigInfos>> updateParams(@RequestHeader("userId") String userId, @RequestBody List<ConfigInfos> configInfosList) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateParameters(userId, configInfosList));
     }
 }

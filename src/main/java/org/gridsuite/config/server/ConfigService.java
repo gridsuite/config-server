@@ -18,6 +18,8 @@ import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -46,81 +48,40 @@ public class ConfigService {
         this.configRepository = configRepository;
     }
 
-    Mono<ConfigInfos> getConfigParameters(String userId) {
-        Mono<ConfigInfosEntity> configInfosEntityMono = configRepository.findByUserId(userId);
-        return configInfosEntityMono.map(ConfigService::toConfigInfos)
-                .switchIfEmpty(initialiseDefaultParameters(userId).map(ConfigService::toConfigInfos));
+    Flux<ConfigInfos> getConfigParameters(String userId) {
+        Flux<ConfigInfosEntity> configInfosEntityFlux = configRepository.findAllByUserId(userId);
+        return configInfosEntityFlux.map(ConfigService::toConfigInfos);
     }
 
-    private Mono<ConfigInfosEntity> initialiseDefaultParameters(String userId) {
-        ConfigInfosEntity newConfigInfosEntity = ConfigInfosEntity.builder()
-                .userId(userId)
-                .build();
-        return configRepository.save(newConfigInfosEntity);
-    }
-
-    Mono<ConfigInfos> updateParameters(String userId, ConfigInfos configInfos) {
-        Mono<ConfigInfosEntity> configInfosEntityMono = configRepository.findByUserId(userId);
-        return configInfosEntityMono.flatMap(configInfosEntity -> {
-            updateConfigInfosEntity(configInfosEntity, configInfos);
-            return configRepository.save(configInfosEntity).doOnSuccess(e ->
-                    configUpdatePublisher.onNext(MessageBuilder.withPayload("")
-                    .setHeader(HEADER_USER_ID, userId)
-                    .build()));
+    Mono<ConfigInfos> updateParameter(String userId, ConfigInfos configInfos) {
+        Mono<ConfigInfosEntity> configInfosEntityMono = configRepository.findByUserIdAndKey(userId, configInfos.getKey());
+        return configInfosEntityMono.switchIfEmpty(createParameters(userId, configInfos)).flatMap(configInfosEntity -> {
+            configInfosEntity.setValue(configInfos.getValue());
+            return save(userId, configInfosEntity);
         }).map(ConfigService::toConfigInfos);
     }
 
-    private static ConfigInfos toConfigInfos(ConfigInfosEntity configInfosEntity) {
-        return ConfigInfos.builder()
-                .userId(configInfosEntity.getUserId())
-                .substationLayout(configInfosEntity.getSubstationLayout())
-                .lineFlowMode(configInfosEntity.getLineFlowMode())
-                .lineFlowColorMode(configInfosEntity.getLineFlowColorMode())
-                .centerLabel(configInfosEntity.getCenterLabel())
-                .diagonalLabel(configInfosEntity.getDiagonalLabel())
-                .lineFlowAlertThreshold(configInfosEntity.getLineFlowAlertThreshold())
-                .lineFullPath(configInfosEntity.getLineFullPath())
-                .lineParallelPath(configInfosEntity.getLineParallelPath())
-                .theme(configInfosEntity.getTheme())
-                .useName(configInfosEntity.getUseName())
-                .viewOverloadsTable(configInfosEntity.getViewOverloadsTable())
-                .build();
+    Flux<ConfigInfos> updateParameters(String userId, List<ConfigInfos> configInfosList) {
+        ArrayList<Mono<ConfigInfos>> monos = new ArrayList<>();
+        configInfosList.forEach(configInfos -> monos.add(updateParameter(userId, configInfos)));
+        Flux<ConfigInfos> configInfosFlux = Flux.merge(monos);
+        return configInfosFlux.doOnComplete(() -> getConfigParameters(userId));
     }
 
-    private static void updateConfigInfosEntity(ConfigInfosEntity configInfosEntity, ConfigInfos configInfos) {
-        if (configInfos.getTheme() != null) {
-            configInfosEntity.setTheme(configInfos.getTheme());
-        }
-        if (configInfos.getCenterLabel() != null) {
-            configInfosEntity.setCenterLabel(configInfos.getCenterLabel());
-        }
-        if (configInfos.getDiagonalLabel() != null) {
-            configInfosEntity.setDiagonalLabel(configInfos.getDiagonalLabel());
-        }
-        if (configInfos.getLineFlowAlertThreshold() != null) {
-            configInfosEntity.setLineFlowAlertThreshold(configInfos.getLineFlowAlertThreshold());
-        }
-        if (configInfos.getLineFullPath() != null) {
-            configInfosEntity.setLineFullPath(configInfos.getLineFullPath());
-        }
-        if (configInfos.getLineFlowColorMode() != null) {
-            configInfosEntity.setLineFlowColorMode(configInfos.getLineFlowColorMode());
-        }
-        if (configInfos.getLineFlowMode() != null) {
-            configInfosEntity.setLineFlowMode(configInfos.getLineFlowMode());
-        }
-        if (configInfos.getLineParallelPath() != null) {
-            configInfosEntity.setLineParallelPath(configInfos.getLineParallelPath());
-        }
-        if (configInfos.getSubstationLayout() != null) {
-            configInfosEntity.setSubstationLayout(configInfos.getSubstationLayout());
-        }
-        if (configInfos.getUseName() != null) {
-            configInfosEntity.setUseName(configInfos.getUseName());
-        }
-        if (configInfos.getViewOverloadsTable() != null) {
-            configInfosEntity.setViewOverloadsTable(configInfos.getViewOverloadsTable());
-        }
+    Mono<ConfigInfosEntity> createParameters(String userId, ConfigInfos configInfos) {
+        ConfigInfosEntity configInfosEntity = new ConfigInfosEntity(userId, configInfos.getKey(), configInfos.getValue());
+        return save(userId, configInfosEntity);
+    }
+
+    Mono<ConfigInfosEntity> save(String userId, ConfigInfosEntity configInfosEntity) {
+        return configRepository.save(configInfosEntity).doOnSuccess(e ->
+                configUpdatePublisher.onNext(MessageBuilder.withPayload("")
+                        .setHeader(HEADER_USER_ID, userId)
+                        .build()));
+    }
+
+    private static ConfigInfos toConfigInfos(ConfigInfosEntity configInfosEntity) {
+        return new ConfigInfos(configInfosEntity.getKey(), configInfosEntity.getValue());
     }
 
 }

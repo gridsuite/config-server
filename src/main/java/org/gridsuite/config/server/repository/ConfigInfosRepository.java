@@ -8,6 +8,7 @@ package org.gridsuite.config.server.repository;
 
 import org.springframework.data.cassandra.repository.ReactiveCassandraRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -17,6 +18,8 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface ConfigInfosRepository extends ReactiveCassandraRepository<ConfigInfosEntity, String> {
 
-    Mono<ConfigInfosEntity> findByUserId(String userId);
+    Flux<ConfigInfosEntity> findAllByUserId(String userId);
+
+    Mono<ConfigInfosEntity> findByUserIdAndKey(String userId, String key);
 
 }

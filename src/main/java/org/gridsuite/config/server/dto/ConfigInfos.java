@@ -13,18 +13,8 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @Builder
+@EqualsAndHashCode
 public class ConfigInfos {
-
-    String userId;
-    String theme;
-    Boolean useName;
-    Boolean centerLabel;
-    Boolean diagonalLabel;
-    Boolean lineFullPath;
-    Boolean lineParallelPath;
-    String lineFlowMode;
-    String lineFlowColorMode;
-    Integer lineFlowAlertThreshold;
-    Boolean viewOverloadsTable;
-    String substationLayout;
+    String key;
+    String value;
 }
