@@ -6,7 +6,7 @@
  */
 package org.gridsuite.config.server;
 
-import org.gridsuite.config.server.dto.ConfigInfos;
+import org.gridsuite.config.server.dto.ParameterInfos;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
@@ -51,7 +51,9 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
     @Test
     public void test() throws Exception {
 
-        //get config parameters -> expect default value
+        ParameterizedTypeReference<ArrayList<ParameterInfos>> listTypeReference = new ParameterizedTypeReference<>() { };
+
+        //get config parameters -> expect empty list
         webTestClient.get()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
@@ -61,18 +63,27 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
                 .expectBody(String.class)
                 .isEqualTo("[]");
 
-        ConfigInfos configInfos = new ConfigInfos("testKey", "testValue");
+        ParameterInfos parameterInfos = new ParameterInfos("testKey", "testValue");
+        ArrayList<ParameterInfos> paramInfosList1 = new ArrayList<>();
+        paramInfosList1.add(parameterInfos);
 
         //insert config parameters
         webTestClient.put()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
-                .body(BodyInserters.fromValue(configInfos))
+                .body(BodyInserters.fromValue(paramInfosList1))
+                .exchange()
+                .expectStatus().isOk();
+
+        //get config parameters and expect the added one
+        webTestClient.get()
+                .uri("/v1/parameters")
+                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(ConfigInfos.class)
-                .value(new MatcherConfigParam(configInfos));
+                .expectBody(listTypeReference)
+                .value(new MatcherConfigParamList(paramInfosList1));
 
         // assert that the broker message has been sent to notify parameters change
         Message<byte[]> messageSwitch = output.receive(1000);
@@ -80,106 +91,77 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
         MessageHeaders headersSwitch = messageSwitch.getHeaders();
         assertEquals("userId", headersSwitch.get(ConfigService.HEADER_USER_ID));
 
-        configInfos.setValue("updatedValue");
+        paramInfosList1.get(0).setValue("updatedValue");
 
         //update config parameters
         webTestClient.put()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
-                .body(BodyInserters.fromValue(configInfos))
+                .body(BodyInserters.fromValue(paramInfosList1))
                 .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(ConfigInfos.class)
-                .value(new MatcherConfigParam(configInfos));
+                .expectStatus().isOk();
 
-        // assert that the broker message has been sent to notify parameters change
-        messageSwitch = output.receive(1000);
-        assertEquals("", new String(messageSwitch.getPayload()));
-        headersSwitch = messageSwitch.getHeaders();
-        assertEquals("userId", headersSwitch.get(ConfigService.HEADER_USER_ID));
-
-        ConfigInfos configInfos2 = new ConfigInfos("testKey2", "testValue2");
-
-        //add another config parameters
-        webTestClient.put()
-                .uri("/v1/parameters")
-                .header("userId", "userId")
-                .body(BodyInserters.fromValue(configInfos2))
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(ConfigInfos.class)
-                .value(new MatcherConfigParam(configInfos2));
-
-        // assert that the broker message has been sent to notify parameters change
-        messageSwitch = output.receive(1000);
-        assertEquals("", new String(messageSwitch.getPayload()));
-        headersSwitch = messageSwitch.getHeaders();
-        assertEquals("userId", headersSwitch.get(ConfigService.HEADER_USER_ID));
-
-        ArrayList<ConfigInfos> configInfosList = new ArrayList<>();
-        configInfosList.add(configInfos);
-        configInfosList.add(configInfos2);
-
-        //get config parameters and expect the 2 parameters
+        //get config parameters and expect the updated one
         webTestClient.get()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(new ParameterizedTypeReference<ArrayList<ConfigInfos>>() { })
-                .value(new MatcherConfigParamList(configInfosList));
+                .expectBody(listTypeReference)
+                .value(new MatcherConfigParamList(paramInfosList1));
 
-        configInfosList.get(0).setValue("updatedValue2");
-        configInfosList.get(1).setValue("updatedValue2");
+        // assert that the broker message has been sent to notify parameters change
+        messageSwitch = output.receive(1000);
+        assertEquals("", new String(messageSwitch.getPayload()));
+        headersSwitch = messageSwitch.getHeaders();
+        assertEquals("userId", headersSwitch.get(ConfigService.HEADER_USER_ID));
 
-        //update multiple parameters
+        ParameterInfos parameterInfos2 = new ParameterInfos("testKey2", "testValue2");
+        ArrayList<ParameterInfos> paramInfosList2 = new ArrayList<>();
+        paramInfosList2.add(parameterInfos2);
+
+        paramInfosList1.add(parameterInfos2);
+
+        //add another config parameters
         webTestClient.put()
-                .uri("/v1/multiple-parameters")
+                .uri("/v1/parameters")
                 .header("userId", "userId")
-                .body(BodyInserters.fromValue(configInfosList))
+                .body(BodyInserters.fromValue(paramInfosList2))
+                .exchange()
+                .expectStatus().isOk();
+
+        //get config parameters and expect the 2 params
+        webTestClient.get()
+                .uri("/v1/parameters")
+                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(new ParameterizedTypeReference<ArrayList<ConfigInfos>>() { })
-                .value(new MatcherConfigParamList(configInfosList));
+                .expectBody(listTypeReference)
+                .value(new MatcherConfigParamList(paramInfosList1));
+
+        // assert that the broker message has been sent to notify parameters change
+        messageSwitch = output.receive(1000);
+        assertEquals("", new String(messageSwitch.getPayload()));
+        headersSwitch = messageSwitch.getHeaders();
+        assertEquals("userId", headersSwitch.get(ConfigService.HEADER_USER_ID));
 
     }
 
-    private static class MatcherConfigParam extends TypeSafeMatcher<ConfigInfos> {
-        ConfigInfos source;
+    private static class MatcherConfigParamList extends TypeSafeMatcher<ArrayList<ParameterInfos>> {
+        ArrayList<ParameterInfos> source;
 
-        public MatcherConfigParam(ConfigInfos val) {
+        public MatcherConfigParamList(ArrayList<ParameterInfos> val) {
             this.source = val;
         }
 
         @Override
-        public boolean matchesSafely(ConfigInfos configInfos) {
-            return source.getKey().equals(configInfos.getKey())
-                    && source.getValue().equals(configInfos.getValue());
-        }
-
-        @Override
-        public void describeTo(Description description) {
-            description.toString();
-        }
-    }
-
-    private static class MatcherConfigParamList extends TypeSafeMatcher<ArrayList<ConfigInfos>> {
-        ArrayList<ConfigInfos> source;
-
-        public MatcherConfigParamList(ArrayList<ConfigInfos> val) {
-            this.source = val;
-        }
-
-        @Override
-        public boolean matchesSafely(ArrayList<ConfigInfos> configInfos) {
-            //oder doesn't matter
-            source.sort(Comparator.comparing(ConfigInfos::getKey));
-            configInfos.sort(Comparator.comparing(ConfigInfos::getKey));
-            return source.equals(configInfos);
+        public boolean matchesSafely(ArrayList<ParameterInfos> parameterInfos) {
+            //order doesn't matter
+            source.sort(Comparator.comparing(ParameterInfos::getName));
+            parameterInfos.sort(Comparator.comparing(ParameterInfos::getName));
+            return source.equals(parameterInfos);
         }
 
         @Override

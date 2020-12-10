@@ -1,7 +1,7 @@
 
 CREATE TABLE IF NOT EXISTS config.parameters (
     userId text,
-    configKey text,
-    configValue text,
-    PRIMARY KEY (userId, configKey)
+    name text,
+    value text,
+    PRIMARY KEY (userId, name)
 );

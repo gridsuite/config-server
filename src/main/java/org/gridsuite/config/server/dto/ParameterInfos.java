@@ -13,7 +13,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode
-public class ConfigInfos {
-    String key;
+public class ParameterInfos {
+    String name;
     String value;
 }

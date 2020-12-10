@@ -6,9 +6,9 @@
  */
 package org.gridsuite.config.server;
 
-import org.gridsuite.config.server.repository.ConfigInfosRepository;
-import org.gridsuite.config.server.dto.ConfigInfos;
-import org.gridsuite.config.server.repository.ConfigInfosEntity;
+import org.gridsuite.config.server.repository.ParametersRepository;
+import org.gridsuite.config.server.dto.ParameterInfos;
+import org.gridsuite.config.server.repository.ParameterEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.support.MessageBuilder;
@@ -18,7 +18,6 @@ import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -30,7 +29,7 @@ import java.util.logging.Level;
 @Service
 public class ConfigService {
 
-    private final ConfigInfosRepository configRepository;
+    private final ParametersRepository configRepository;
 
     private static final String CATEGORY_BROKER_OUTPUT = ConfigService.class.getName() + ".output-broker-messages";
 
@@ -44,44 +43,41 @@ public class ConfigService {
     }
 
     @Autowired
-    public ConfigService(ConfigInfosRepository configRepository) {
+    public ConfigService(ParametersRepository configRepository) {
         this.configRepository = configRepository;
     }
 
-    Flux<ConfigInfos> getConfigParameters(String userId) {
-        Flux<ConfigInfosEntity> configInfosEntityFlux = configRepository.findAllByUserId(userId);
+    Flux<ParameterInfos> getConfigParameters(String userId) {
+        Flux<ParameterEntity> configInfosEntityFlux = configRepository.findAllByUserId(userId);
         return configInfosEntityFlux.map(ConfigService::toConfigInfos);
     }
 
-    Mono<ConfigInfos> updateParameter(String userId, ConfigInfos configInfos) {
-        Mono<ConfigInfosEntity> configInfosEntityMono = configRepository.findByUserIdAndKey(userId, configInfos.getKey());
-        return configInfosEntityMono.switchIfEmpty(createParameters(userId, configInfos)).flatMap(configInfosEntity -> {
-            configInfosEntity.setValue(configInfos.getValue());
-            return save(userId, configInfosEntity);
+    Mono<ParameterInfos> updateParameter(String userId, ParameterInfos parameterInfos) {
+        Mono<ParameterEntity> configInfosEntityMono = configRepository.findByUserIdAndName(userId, parameterInfos.getName());
+        return configInfosEntityMono.switchIfEmpty(createParameters(userId, parameterInfos)).flatMap(parameterEntity -> {
+            parameterEntity.setValue(parameterInfos.getValue());
+            return save(userId, parameterEntity);
         }).map(ConfigService::toConfigInfos);
     }
 
-    Flux<ConfigInfos> updateParameters(String userId, List<ConfigInfos> configInfosList) {
-        ArrayList<Mono<ConfigInfos>> monos = new ArrayList<>();
-        configInfosList.forEach(configInfos -> monos.add(updateParameter(userId, configInfos)));
-        Flux<ConfigInfos> configInfosFlux = Flux.merge(monos);
-        return configInfosFlux.doOnComplete(() -> getConfigParameters(userId));
+    Mono<Void> updateParameters(String userId, List<ParameterInfos> parameterInfosList) {
+        return Flux.fromIterable(parameterInfosList).flatMap(c -> updateParameter(userId, c)).then();
     }
 
-    Mono<ConfigInfosEntity> createParameters(String userId, ConfigInfos configInfos) {
-        ConfigInfosEntity configInfosEntity = new ConfigInfosEntity(userId, configInfos.getKey(), configInfos.getValue());
-        return save(userId, configInfosEntity);
+    Mono<ParameterEntity> createParameters(String userId, ParameterInfos parameterInfos) {
+        ParameterEntity parameterEntity = new ParameterEntity(userId, parameterInfos.getName(), parameterInfos.getValue());
+        return save(userId, parameterEntity);
     }
 
-    Mono<ConfigInfosEntity> save(String userId, ConfigInfosEntity configInfosEntity) {
-        return configRepository.save(configInfosEntity).doOnSuccess(e ->
+    Mono<ParameterEntity> save(String userId, ParameterEntity parameterEntity) {
+        return configRepository.save(parameterEntity).doOnSuccess(e ->
                 configUpdatePublisher.onNext(MessageBuilder.withPayload("")
                         .setHeader(HEADER_USER_ID, userId)
                         .build()));
     }
 
-    private static ConfigInfos toConfigInfos(ConfigInfosEntity configInfosEntity) {
-        return new ConfigInfos(configInfosEntity.getKey(), configInfosEntity.getValue());
+    private static ParameterInfos toConfigInfos(ParameterEntity parameterEntity) {
+        return new ParameterInfos(parameterEntity.getName(), parameterEntity.getValue());
     }
 
 }

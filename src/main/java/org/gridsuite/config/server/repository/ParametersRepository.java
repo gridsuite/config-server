@@ -16,10 +16,10 @@ import reactor.core.publisher.Mono;
  */
 
 @Repository
-public interface ConfigInfosRepository extends ReactiveCassandraRepository<ConfigInfosEntity, String> {
+public interface ParametersRepository extends ReactiveCassandraRepository<ParameterEntity, String> {
 
-    Flux<ConfigInfosEntity> findAllByUserId(String userId);
+    Flux<ParameterEntity> findAllByUserId(String userId);
 
-    Mono<ConfigInfosEntity> findByUserIdAndKey(String userId, String key);
+    Mono<ParameterEntity> findByUserIdAndName(String userId, String name);
 
 }

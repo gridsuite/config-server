@@ -22,14 +22,14 @@ import org.springframework.data.cassandra.core.mapping.Table;
 @Setter
 @AllArgsConstructor
 @Table("parameters")
-public class ConfigInfosEntity {
+public class ParameterEntity {
 
     @PrimaryKeyColumn(name = "userId", type = PrimaryKeyType.PARTITIONED)
     private String userId;
 
-    @PrimaryKeyColumn(name = "configKey", type = PrimaryKeyType.CLUSTERED)
-    private String key;
+    @PrimaryKeyColumn(name = "name", type = PrimaryKeyType.CLUSTERED)
+    private String name;
 
-    @Column("configValue")
+    @Column("value")
     private String value;
 }
