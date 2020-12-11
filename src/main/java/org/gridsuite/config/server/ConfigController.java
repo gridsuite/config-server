@@ -39,6 +39,13 @@ public class ConfigController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId));
     }
 
+    @GetMapping(value = "/parameters/{name}", produces = "application/json")
+    @Operation(summary = "get the value of configuration parameters for the given param name")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The wanted configuration parameter")})
+    public ResponseEntity<Mono<ParameterInfos>> getParameter(@RequestHeader("userId") String userId, @PathVariable("name") String name) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameter(userId, name));
+    }
+
     @PutMapping(value = "/parameters", produces = "application/json")
     @Operation(summary = "update the values for a set of configuration parameters")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The parameters are updated")})

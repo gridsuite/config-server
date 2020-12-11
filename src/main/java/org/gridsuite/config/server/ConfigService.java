@@ -52,6 +52,10 @@ public class ConfigService {
         return configInfosEntityFlux.map(ConfigService::toConfigInfos);
     }
 
+    Mono<ParameterInfos> getConfigParameter(String userId, String name) {
+        return configRepository.findByUserIdAndName(userId, name).map(ConfigService::toConfigInfos);
+    }
+
     Mono<ParameterInfos> updateParameter(String userId, ParameterInfos parameterInfos) {
         Mono<ParameterEntity> configInfosEntityMono = configRepository.findByUserIdAndName(userId, parameterInfos.getName());
         return configInfosEntityMono.switchIfEmpty(createParameters(userId, parameterInfos)).flatMap(parameterEntity -> {

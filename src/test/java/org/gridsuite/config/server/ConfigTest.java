@@ -147,6 +147,26 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
         headersSwitch = messageSwitch.getHeaders();
         assertEquals("userId", headersSwitch.get(ConfigService.HEADER_USER_ID));
 
+        //get a specific parameter
+        webTestClient.get()
+                .uri("/v1/parameters/testKey")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody(ParameterInfos.class)
+                .value(new MatcherConfigParam(parameterInfos));
+
+        //get a specific parameter
+        webTestClient.get()
+                .uri("/v1/parameters/testKey2")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody(ParameterInfos.class)
+                .value(new MatcherConfigParam(parameterInfos2));
+
     }
 
     private static class MatcherConfigParamList extends TypeSafeMatcher<ArrayList<ParameterInfos>> {
@@ -162,6 +182,25 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
             source.sort(Comparator.comparing(ParameterInfos::getName));
             parameterInfos.sort(Comparator.comparing(ParameterInfos::getName));
             return source.equals(parameterInfos);
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.toString();
+        }
+    }
+
+    private static class MatcherConfigParam extends TypeSafeMatcher<ParameterInfos> {
+        ParameterInfos source;
+
+        public MatcherConfigParam(ParameterInfos val) {
+            this.source = val;
+        }
+
+        @Override
+        public boolean matchesSafely(ParameterInfos parameterInfos) {
+            return source.getName().equals(parameterInfos.getName())
+                    && source.getValue().equals(parameterInfos.getValue());
         }
 
         @Override
