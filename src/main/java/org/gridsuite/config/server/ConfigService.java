@@ -60,24 +60,24 @@ public class ConfigService {
         Mono<ParameterEntity> configInfosEntityMono = configRepository.findByUserIdAndName(userId, parameterInfos.getName());
         return configInfosEntityMono.switchIfEmpty(createParameters(userId, parameterInfos)).flatMap(parameterEntity -> {
             parameterEntity.setValue(parameterInfos.getValue());
-            return save(userId, parameterEntity);
+            return save(parameterEntity);
         }).map(ConfigService::toConfigInfos);
     }
 
     Mono<Void> updateParameters(String userId, List<ParameterInfos> parameterInfosList) {
-        return Flux.fromIterable(parameterInfosList).flatMap(c -> updateParameter(userId, c)).then();
+        return Flux.fromIterable(parameterInfosList).flatMap(c -> updateParameter(userId, c)).doOnComplete(() ->
+                configUpdatePublisher.onNext(MessageBuilder.withPayload("")
+                        .setHeader(HEADER_USER_ID, userId)
+                        .build())).then();
     }
 
     Mono<ParameterEntity> createParameters(String userId, ParameterInfos parameterInfos) {
         ParameterEntity parameterEntity = new ParameterEntity(userId, parameterInfos.getName(), parameterInfos.getValue());
-        return save(userId, parameterEntity);
+        return save(parameterEntity);
     }
 
-    Mono<ParameterEntity> save(String userId, ParameterEntity parameterEntity) {
-        return configRepository.save(parameterEntity).doOnSuccess(e ->
-                configUpdatePublisher.onNext(MessageBuilder.withPayload("")
-                        .setHeader(HEADER_USER_ID, userId)
-                        .build()));
+    Mono<ParameterEntity> save(ParameterEntity parameterEntity) {
+        return configRepository.save(parameterEntity);
     }
 
     private static ParameterInfos toConfigInfos(ParameterEntity parameterEntity) {
