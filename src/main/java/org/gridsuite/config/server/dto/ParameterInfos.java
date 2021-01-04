@@ -8,6 +8,10 @@ package org.gridsuite.config.server.dto;
 
 import lombok.*;
 
+/**
+ * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
+ */
+
 @AllArgsConstructor
 @Getter
 @Setter
