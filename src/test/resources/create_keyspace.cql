@@ -1,0 +1,1 @@
+CREATE KEYSPACE "config" WITH REPLICATION = {'class':'SimpleStrategy', 'replication_factor':1};
