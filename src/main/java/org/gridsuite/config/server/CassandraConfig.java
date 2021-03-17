@@ -6,14 +6,19 @@
  */
 package org.gridsuite.config.server;
 
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.type.codec.registry.CodecRegistry;
+import com.datastax.oss.driver.internal.core.type.codec.registry.DefaultCodecRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.data.cassandra.config.AbstractReactiveCassandraConfiguration;
-import org.springframework.data.cassandra.config.CassandraClusterFactoryBean;
+import org.springframework.data.cassandra.config.CqlSessionFactoryBean;
+import org.springframework.data.cassandra.config.SessionFactoryFactoryBean;
+import org.springframework.data.cassandra.core.CassandraAdminTemplate;
+import org.springframework.data.cassandra.core.convert.CassandraConverter;
+import org.springframework.data.cassandra.core.convert.MappingCassandraConverter;
 import org.springframework.data.cassandra.core.mapping.CassandraMappingContext;
-import org.springframework.data.cassandra.core.mapping.SimpleUserTypeResolver;
 import org.springframework.data.cassandra.repository.config.EnableReactiveCassandraRepositories;
 
 /**
@@ -24,30 +29,41 @@ import org.springframework.data.cassandra.repository.config.EnableReactiveCassan
 @PropertySource(value = {"classpath:cassandra.properties"})
 @PropertySource(value = {"file:/config/cassandra.properties"}, ignoreResourceNotFound = true)
 @EnableReactiveCassandraRepositories
-public class CassandraConfig extends AbstractReactiveCassandraConfiguration {
+public class CassandraConfig {
 
-    @Override
-    protected String getKeyspaceName() {
-        return CassandraConstants.KEYSPACE_CONFIG;
-    }
-
-    @Override
-    protected boolean getMetricsEnabled() {
-        return false;
+    @Bean
+    public CqlSessionFactoryBean session(Environment env) {
+        CqlSessionFactoryBean session = new CqlSessionFactoryBean();
+        session.setContactPoints(env.getRequiredProperty("cassandra.contact-points"));
+        session.setPort(Integer.parseInt(env.getRequiredProperty("cassandra.port")));
+        session.setLocalDatacenter("datacenter1");
+        session.setKeyspaceName(CassandraConstants.KEYSPACE_CONFIG);
+        return session;
     }
 
     @Bean
-    public CassandraClusterFactoryBean cluster(Environment env) {
-        CassandraClusterFactoryBean cluster = new CassandraClusterFactoryBean();
-        cluster.setContactPoints(env.getRequiredProperty("cassandra.contact-points"));
-        cluster.setPort(Integer.parseInt(env.getRequiredProperty("cassandra.port")));
-        return cluster;
+    public CassandraMappingContext mappingContext() {
+        return new CassandraMappingContext();
     }
 
     @Bean
-    public CassandraMappingContext cassandraMapping(Environment env) {
-        CassandraMappingContext mappingContext =  new CassandraMappingContext();
-        mappingContext.setUserTypeResolver(new SimpleUserTypeResolver(cluster(env).getObject(), CassandraConstants.KEYSPACE_CONFIG));
-        return mappingContext;
+    public CassandraConverter converter(CassandraMappingContext mappingContext) {
+        MappingCassandraConverter mappingCassandraConverter = new MappingCassandraConverter(mappingContext);
+        CodecRegistry codecRegistry = new DefaultCodecRegistry("");
+        mappingCassandraConverter.setCodecRegistry(codecRegistry);
+        return mappingCassandraConverter;
+    }
+
+    @Bean
+    public SessionFactoryFactoryBean sessionFactory(CqlSession session, CassandraConverter converter) {
+        SessionFactoryFactoryBean sessionFactory = new SessionFactoryFactoryBean();
+        sessionFactory.setSession(session);
+        sessionFactory.setConverter(converter);
+        return sessionFactory;
+    }
+
+    @Bean
+    public CassandraAdminTemplate cassandraTemplate(CqlSession session, CassandraConverter converter) {
+        return new CassandraAdminTemplate(session, converter);
     }
 }

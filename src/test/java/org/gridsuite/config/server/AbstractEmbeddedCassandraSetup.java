@@ -6,9 +6,9 @@
  */
 package org.gridsuite.config.server;
 
+import com.github.nosan.embedded.cassandra.api.connection.CqlSessionCassandraConnection;
 import org.gridsuite.config.test.EmbeddedCassandraFactoryConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.github.nosan.embedded.cassandra.api.connection.ClusterCassandraConnection;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 
@@ -25,6 +25,6 @@ import org.springframework.test.context.ContextHierarchy;
 public abstract class AbstractEmbeddedCassandraSetup {
 
     @Autowired
-    private ClusterCassandraConnection clusterCassandraConnection;
+    private CqlSessionCassandraConnection cqlSessionCassandraConnection;
 
 }
