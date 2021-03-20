@@ -6,14 +6,15 @@
  */
 package org.gridsuite.config.server;
 
-import org.gridsuite.config.server.repository.ParametersRepository;
 import org.gridsuite.config.server.dto.ParameterInfos;
 import org.gridsuite.config.server.repository.ParameterEntity;
+import org.gridsuite.config.server.repository.ParametersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -47,41 +48,32 @@ public class ConfigService {
         this.configRepository = configRepository;
     }
 
-    Flux<ParameterInfos> getConfigParameters(String userId) {
-        Flux<ParameterEntity> configInfosEntityFlux = configRepository.findAllByUserId(userId);
-        return configInfosEntityFlux.map(ConfigService::toConfigInfos);
+    Flux<ParameterInfos> getConfigParameters(String userId, List<String> names) {
+        Flux<ParameterEntity> entities = CollectionUtils.isEmpty(names) ? configRepository.findAllByUserId(userId) :
+                configRepository.findByUserIdAndNameIn(userId, names);
+        return entities.map(ParameterEntity::toConfigInfos);
     }
 
     Mono<ParameterInfos> getConfigParameter(String userId, String name) {
-        return configRepository.findByUserIdAndName(userId, name).map(ConfigService::toConfigInfos);
+        return configRepository.findByUserIdAndName(userId, name).map(ParameterEntity::toConfigInfos);
     }
 
-    Mono<ParameterInfos> updateParameter(String userId, ParameterInfos parameterInfos) {
-        Mono<ParameterEntity> configInfosEntityMono = configRepository.findByUserIdAndName(userId, parameterInfos.getName());
-        return configInfosEntityMono.switchIfEmpty(createParameters(userId, parameterInfos)).flatMap(parameterEntity -> {
-            parameterEntity.setValue(parameterInfos.getValue());
-            return save(parameterEntity);
-        }).map(ConfigService::toConfigInfos);
-    }
-
-    Mono<Void> updateParameters(String userId, List<ParameterInfos> parameterInfosList) {
-        return Flux.fromIterable(parameterInfosList).flatMap(c -> updateParameter(userId, c)).doOnComplete(() ->
-                configUpdatePublisher.onNext(MessageBuilder.withPayload("")
+    Mono<Void> updateConfigParameters(String userId, List<ParameterInfos> parameterInfosList) {
+        return Flux.fromIterable(parameterInfosList)
+                .flatMap(c -> updateConfigParameter(userId, c))
+                .doOnComplete(() -> configUpdatePublisher.onNext(MessageBuilder.withPayload("")
                         .setHeader(HEADER_USER_ID, userId)
-                        .build())).then();
+                        .build()))
+                .then();
     }
 
-    Mono<ParameterEntity> createParameters(String userId, ParameterInfos parameterInfos) {
-        ParameterEntity parameterEntity = new ParameterEntity(userId, parameterInfos.getName(), parameterInfos.getValue());
-        return save(parameterEntity);
+    private Mono<ParameterInfos> updateConfigParameter(String userId, ParameterInfos parameterInfos) {
+        return configRepository.findByUserIdAndName(userId, parameterInfos.getName())
+                .switchIfEmpty(Mono.just(new ParameterEntity(userId, parameterInfos.getName(), parameterInfos.getValue())))
+                .flatMap(parameterEntity -> {
+                    parameterEntity.setValue(parameterInfos.getValue());
+                    return configRepository.save(parameterEntity);
+                })
+                .map(ParameterEntity::toConfigInfos);
     }
-
-    Mono<ParameterEntity> save(ParameterEntity parameterEntity) {
-        return configRepository.save(parameterEntity);
-    }
-
-    private static ParameterInfos toConfigInfos(ParameterEntity parameterEntity) {
-        return new ParameterInfos(parameterEntity.getName(), parameterEntity.getValue());
-    }
-
 }

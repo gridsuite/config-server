@@ -16,7 +16,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.stream.binder.test.OutputDestination;
 import org.springframework.cloud.stream.binder.test.TestChannelBinderConfiguration;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -27,10 +26,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.function.BodyInserters;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
@@ -49,117 +48,154 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
     private OutputDestination output;
 
     @Test
-    public void test() throws Exception {
-
-        ParameterizedTypeReference<ArrayList<ParameterInfos>> listTypeReference = new ParameterizedTypeReference<>() { };
-
-        //get config parameters -> expect empty list
+    public void testCreateParameters() {
+        //get all config parameters -> expect empty list
         webTestClient.get()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(String.class)
-                .isEqualTo("[]");
+                .expectBodyList(ParameterInfos.class)
+                .isEqualTo(List.of());
 
-        ParameterInfos parameterInfos = new ParameterInfos("testKey", "testValue");
-        ArrayList<ParameterInfos> paramInfosList1 = new ArrayList<>();
-        paramInfosList1.add(parameterInfos);
+        ParameterInfos parameterInfos1 = new ParameterInfos("testKey", "testValue");
+        List<ParameterInfos> paramInfosList = List.of(parameterInfos1);
 
         //insert config parameters
         webTestClient.put()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
-                .body(BodyInserters.fromValue(paramInfosList1))
+                .body(BodyInserters.fromValue(paramInfosList))
                 .exchange()
                 .expectStatus().isOk();
 
-        //get config parameters and expect the added one
+        //get all config parameters and expect the added one
         webTestClient.get()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(listTypeReference)
-                .value(new MatcherConfigParamList(paramInfosList1));
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosList));
 
         // assert that the broker message has been sent to notify parameters change
-        Message<byte[]> messageSwitch = output.receive(1000);
-        assertEquals("", new String(messageSwitch.getPayload()));
-        MessageHeaders headersSwitch = messageSwitch.getHeaders();
-        assertEquals("userId", headersSwitch.get(ConfigService.HEADER_USER_ID));
+        Message<byte[]> message = output.receive(1000);
+        assertEquals("", new String(message.getPayload()));
+        MessageHeaders headers = message.getHeaders();
+        assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
 
-        paramInfosList1.get(0).setValue("updatedValue");
+        parameterInfos1.setValue("updatedValue");
 
         //update config parameters
         webTestClient.put()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
-                .body(BodyInserters.fromValue(paramInfosList1))
+                .body(BodyInserters.fromValue(paramInfosList))
                 .exchange()
                 .expectStatus().isOk();
 
-        //get config parameters and expect the updated one
+        //get all config parameters and expect the updated one
         webTestClient.get()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(listTypeReference)
-                .value(new MatcherConfigParamList(paramInfosList1));
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosList));
 
         // assert that the broker message has been sent to notify parameters change
-        messageSwitch = output.receive(1000);
-        assertEquals("", new String(messageSwitch.getPayload()));
-        headersSwitch = messageSwitch.getHeaders();
-        assertEquals("userId", headersSwitch.get(ConfigService.HEADER_USER_ID));
+        message = output.receive(1000);
+        assertEquals("", new String(message.getPayload()));
+        headers = message.getHeaders();
+        assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
 
         ParameterInfos parameterInfos2 = new ParameterInfos("testKey2", "testValue2");
-        ArrayList<ParameterInfos> paramInfosList2 = new ArrayList<>();
-        paramInfosList2.add(parameterInfos2);
 
-        paramInfosList1.add(parameterInfos2);
+        paramInfosList = List.of(parameterInfos1, parameterInfos2);
 
         //add another config parameters
         webTestClient.put()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
-                .body(BodyInserters.fromValue(paramInfosList2))
+                .body(BodyInserters.fromValue(List.of(parameterInfos2)))
                 .exchange()
                 .expectStatus().isOk();
 
-        //get config parameters and expect the 2 params
+        //get all config parameters and expect the 2 params
         webTestClient.get()
                 .uri("/v1/parameters")
                 .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(listTypeReference)
-                .value(new MatcherConfigParamList(paramInfosList1));
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosList));
 
         // assert that the broker message has been sent to notify parameters change
-        messageSwitch = output.receive(1000);
-        assertEquals("", new String(messageSwitch.getPayload()));
-        headersSwitch = messageSwitch.getHeaders();
-        assertEquals("userId", headersSwitch.get(ConfigService.HEADER_USER_ID));
+        message = output.receive(1000);
+        assertEquals("", new String(message.getPayload()));
+        headers = message.getHeaders();
+        assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
+
+        assertNull(output.receive(1000));
+    }
+
+    @Test
+    public void testGetParameters() {
+        //get all config parameters -> expect empty list
+        webTestClient.get()
+                .uri("/v1/parameters")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .isEqualTo(List.of());
+
+        ParameterInfos parameterInfos1 = new ParameterInfos("testKey1", "testValue1");
+        ParameterInfos parameterInfos2 = new ParameterInfos("testKey2", "testValue2");
+        List<ParameterInfos> paramInfosList = List.of(parameterInfos1, parameterInfos2);
+
+        //insert config parameters
+        webTestClient.put()
+                .uri("/v1/parameters")
+                .header("userId", "userId")
+                .body(BodyInserters.fromValue(paramInfosList))
+                .exchange()
+                .expectStatus().isOk();
+
+        //get all config parameters and expect the added one
+        webTestClient.get()
+                .uri("/v1/parameters")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosList));
+
+        // assert that the broker message has been sent to notify parameters change
+        Message<byte[]> message = output.receive(1000);
+        assertEquals("", new String(message.getPayload()));
+        MessageHeaders headers = message.getHeaders();
+        assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
 
         //get a specific parameter
         webTestClient.get()
-                .uri("/v1/parameters/testKey")
+                .uri("/v1/parameter/testKey1")
                 .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody(ParameterInfos.class)
-                .value(new MatcherConfigParam(parameterInfos));
+                .value(new MatcherConfigParam(parameterInfos1));
 
         //get a specific parameter
         webTestClient.get()
-                .uri("/v1/parameters/testKey2")
+                .uri("/v1/parameter/testKey2")
                 .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
@@ -167,26 +203,94 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
                 .expectBody(ParameterInfos.class)
                 .value(new MatcherConfigParam(parameterInfos2));
 
+        //get a specific parameter
+        webTestClient.get()
+                .uri("/v1/parameter/foo")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody(ParameterInfos.class)
+                .isEqualTo(null);
+
+        //get a list of config parameters
+        webTestClient.get()
+                .uri("/v1/parameters?")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosList));
+
+        //get a list of config parameters
+        webTestClient.get()
+                .uri("/v1/parameters?names")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosList));
+
+        //get a list of config parameters
+        webTestClient.get()
+                .uri("/v1/parameters?names=")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosList));
+
+        //get a list of config parameters
+        webTestClient.get()
+                .uri("/v1/parameters?names=testKey1")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(List.of(parameterInfos1)));
+
+        //get a list of config parameters
+        webTestClient.get()
+                .uri("/v1/parameters?names=testKey2,")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(List.of(parameterInfos2)));
+
+        //get a list of config parameters
+        webTestClient.get()
+                .uri("/v1/parameters?names=testKey1,testKey2")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosList));
+
+        assertNull(output.receive(1000));
     }
 
-    private static class MatcherConfigParamList extends TypeSafeMatcher<ArrayList<ParameterInfos>> {
-        ArrayList<ParameterInfos> source;
+    private static class MatcherConfigParamList extends TypeSafeMatcher<List<ParameterInfos>> {
+        List<ParameterInfos> source;
 
-        public MatcherConfigParamList(ArrayList<ParameterInfos> val) {
+        public MatcherConfigParamList(List<ParameterInfos> val) {
             this.source = val;
         }
 
         @Override
-        public boolean matchesSafely(ArrayList<ParameterInfos> parameterInfos) {
-            //order doesn't matter
-            source.sort(Comparator.comparing(ParameterInfos::getName));
-            parameterInfos.sort(Comparator.comparing(ParameterInfos::getName));
+        public boolean matchesSafely(List<ParameterInfos> parameterInfos) {
             return source.equals(parameterInfos);
         }
 
         @Override
         public void describeTo(Description description) {
-            description.toString();
+            description.appendValue(source);
         }
     }
 
@@ -205,7 +309,7 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
 
         @Override
         public void describeTo(Description description) {
-            description.toString();
+            description.appendValue(source);
         }
     }
 }

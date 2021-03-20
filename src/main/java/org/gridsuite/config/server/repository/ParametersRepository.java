@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
  */
@@ -19,6 +21,8 @@ import reactor.core.publisher.Mono;
 public interface ParametersRepository extends ReactiveCassandraRepository<ParameterEntity, String> {
 
     Flux<ParameterEntity> findAllByUserId(String userId);
+
+    Flux<ParameterEntity> findByUserIdAndNameIn(String userId, List<String> names);
 
     Mono<ParameterEntity> findByUserIdAndName(String userId, String name);
 

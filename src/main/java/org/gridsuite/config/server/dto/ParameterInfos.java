@@ -17,6 +17,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class ParameterInfos {
     String name;
     String value;

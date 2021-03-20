@@ -33,14 +33,14 @@ public class ConfigController {
     }
 
     @GetMapping(value = "/parameters", produces = "application/json")
-    @Operation(summary = "get the values of configuration parameters")
+    @Operation(summary = "get all configuration parameters or a list for the given names list")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The list of configuration parameters")})
-    public ResponseEntity<Flux<ParameterInfos>> getParameters(@RequestHeader("userId") String userId) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId));
+    public ResponseEntity<Flux<ParameterInfos>> getParameters(@RequestHeader("userId") String userId, @RequestParam(required = false, value = "names") List<String> names) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId, names));
     }
 
-    @GetMapping(value = "/parameters/{name}", produces = "application/json")
-    @Operation(summary = "get the value of configuration parameters for the given param name")
+    @GetMapping(value = "/parameter/{name}", produces = "application/json")
+    @Operation(summary = "get the configuration parameter for the given param name")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The wanted configuration parameter")})
     public ResponseEntity<Mono<ParameterInfos>> getParameter(@RequestHeader("userId") String userId, @PathVariable("name") String name) {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameter(userId, name));
@@ -49,7 +49,7 @@ public class ConfigController {
     @PutMapping(value = "/parameters", produces = "application/json")
     @Operation(summary = "update the values for a set of configuration parameters")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The parameters are updated")})
-    public ResponseEntity<Mono<Void>> updateParams(@RequestHeader("userId") String userId, @RequestBody List<ParameterInfos> parameterInfosList) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateParameters(userId, parameterInfosList));
+    public ResponseEntity<Mono<Void>> updateParameters(@RequestHeader("userId") String userId, @RequestBody List<ParameterInfos> parameterInfosList) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateConfigParameters(userId, parameterInfosList));
     }
 }

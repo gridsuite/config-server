@@ -9,6 +9,7 @@ package org.gridsuite.config.server.repository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.gridsuite.config.server.dto.ParameterInfos;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
@@ -32,4 +33,8 @@ public class ParameterEntity {
 
     @Column("value")
     private String value;
+
+    public ParameterInfos toConfigInfos() {
+        return new ParameterInfos(this.getName(), this.getValue());
+    }
 }
