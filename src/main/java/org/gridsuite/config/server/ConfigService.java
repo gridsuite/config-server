@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
@@ -35,6 +36,7 @@ public class ConfigService {
     private static final String CATEGORY_BROKER_OUTPUT = ConfigService.class.getName() + ".output-broker-messages";
 
     static final String HEADER_USER_ID = "userId";
+    static final String HEADER_PARAMETERS_NAMES = "parametersNames";
 
     private final EmitterProcessor<Message<String>> configUpdatePublisher = EmitterProcessor.create();
 
@@ -63,6 +65,7 @@ public class ConfigService {
                 .flatMap(c -> updateConfigParameter(userId, c))
                 .doOnComplete(() -> configUpdatePublisher.onNext(MessageBuilder.withPayload("")
                         .setHeader(HEADER_USER_ID, userId)
+                        .setHeader(HEADER_PARAMETERS_NAMES, parameterInfosList.stream().map(ParameterInfos::getName).collect(Collectors.toList()))
                         .build()))
                 .then();
     }

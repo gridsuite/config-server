@@ -85,6 +85,7 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
         assertEquals("", new String(message.getPayload()));
         MessageHeaders headers = message.getHeaders();
         assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
+        assertEquals(List.of("testKey"), headers.get(ConfigService.HEADER_PARAMETERS_NAMES));
 
         parameterInfos1.setValue("updatedValue");
 
@@ -111,6 +112,7 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
         assertEquals("", new String(message.getPayload()));
         headers = message.getHeaders();
         assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
+        assertEquals(List.of("testKey"), headers.get(ConfigService.HEADER_PARAMETERS_NAMES));
 
         ParameterInfos parameterInfos2 = new ParameterInfos("testKey2", "testValue2");
 
@@ -139,6 +141,7 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
         assertEquals("", new String(message.getPayload()));
         headers = message.getHeaders();
         assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
+        assertEquals(List.of("testKey2"), headers.get(ConfigService.HEADER_PARAMETERS_NAMES));
 
         assertNull(output.receive(1000));
     }
@@ -182,6 +185,7 @@ public class ConfigTest extends AbstractEmbeddedCassandraSetup {
         assertEquals("", new String(message.getPayload()));
         MessageHeaders headers = message.getHeaders();
         assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
+        assertEquals(List.of("testKey1", "testKey2"), headers.get(ConfigService.HEADER_PARAMETERS_NAMES));
 
         //get a specific parameter
         webTestClient.get()
