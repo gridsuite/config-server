@@ -6,9 +6,12 @@
  */
 package org.gridsuite.config.server;
 
-import org.gridsuite.config.server.repository.ParametersRepository;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+
 import org.gridsuite.config.server.dto.ParameterInfos;
 import org.gridsuite.config.server.repository.ParameterEntity;
+import org.gridsuite.config.server.repository.ParametersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.support.MessageBuilder;
@@ -18,12 +21,9 @@ import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.function.Supplier;
-import java.util.logging.Level;
-
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
+ * @author Slimane Amar <slimane.amar at rte-france.com>
  */
 
 @Service
@@ -34,6 +34,8 @@ public class ConfigService {
     private static final String CATEGORY_BROKER_OUTPUT = ConfigService.class.getName() + ".output-broker-messages";
 
     static final String HEADER_USER_ID = "userId";
+    static final String HEADER_APP_NAME = "appName";
+    static final String HEADER_PARAMETER_NAME = "parameterName";
 
     private final EmitterProcessor<Message<String>> configUpdatePublisher = EmitterProcessor.create();
 
@@ -48,40 +50,34 @@ public class ConfigService {
     }
 
     Flux<ParameterInfos> getConfigParameters(String userId) {
-        Flux<ParameterEntity> configInfosEntityFlux = configRepository.findAllByUserId(userId);
-        return configInfosEntityFlux.map(ConfigService::toConfigInfos);
+        return configRepository.findAllByUserId(userId).map(ParameterEntity::toConfigInfos);
     }
 
-    Mono<ParameterInfos> getConfigParameter(String userId, String name) {
-        return configRepository.findByUserIdAndName(userId, name).map(ConfigService::toConfigInfos);
+    Flux<ParameterInfos> getConfigParameters(String userId, String appName) {
+        return configRepository.findAllByUserIdAndAppName(userId, appName).map(ParameterEntity::toConfigInfos);
     }
 
-    Mono<ParameterInfos> updateParameter(String userId, ParameterInfos parameterInfos) {
-        Mono<ParameterEntity> configInfosEntityMono = configRepository.findByUserIdAndName(userId, parameterInfos.getName());
-        return configInfosEntityMono.switchIfEmpty(createParameters(userId, parameterInfos)).flatMap(parameterEntity -> {
-            parameterEntity.setValue(parameterInfos.getValue());
-            return save(parameterEntity);
-        }).map(ConfigService::toConfigInfos);
+    Mono<ParameterInfos> getConfigParameter(String userId, String appName, String name) {
+        return configRepository.findByUserIdAndAppNameAndName(userId, appName, name).map(ParameterEntity::toConfigInfos);
     }
 
-    Mono<Void> updateParameters(String userId, List<ParameterInfos> parameterInfosList) {
-        return Flux.fromIterable(parameterInfosList).flatMap(c -> updateParameter(userId, c)).doOnComplete(() ->
-                configUpdatePublisher.onNext(MessageBuilder.withPayload("")
+    Mono<Void> updateConfigParameter(String userId, String appName, String name, String value) {
+        return updateParameter(userId, appName, name, value)
+                .doOnSuccess(p -> configUpdatePublisher.onNext(MessageBuilder.withPayload("")
                         .setHeader(HEADER_USER_ID, userId)
-                        .build())).then();
+                        .setHeader(HEADER_APP_NAME, appName)
+                        .setHeader(HEADER_PARAMETER_NAME, name)
+                        .build()))
+                .then();
     }
 
-    Mono<ParameterEntity> createParameters(String userId, ParameterInfos parameterInfos) {
-        ParameterEntity parameterEntity = new ParameterEntity(userId, parameterInfos.getName(), parameterInfos.getValue());
-        return save(parameterEntity);
+    private Mono<ParameterInfos> updateParameter(String userId, String appName, String name, String value) {
+        return configRepository.findByUserIdAndAppNameAndName(userId, appName, name)
+                .switchIfEmpty(Mono.just(new ParameterEntity(userId, appName, name, value)))
+                .flatMap(parameterEntity -> {
+                    parameterEntity.setValue(value);
+                    return configRepository.save(parameterEntity);
+                })
+                .map(ParameterEntity::toConfigInfos);
     }
-
-    Mono<ParameterEntity> save(ParameterEntity parameterEntity) {
-        return configRepository.save(parameterEntity);
-    }
-
-    private static ParameterInfos toConfigInfos(ParameterEntity parameterEntity) {
-        return new ParameterInfos(parameterEntity.getName(), parameterEntity.getValue());
-    }
-
 }

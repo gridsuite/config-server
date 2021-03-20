@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
+ * @author Slimane Amar <slimane.amar at rte-france.com>
  */
 
 @Repository
@@ -20,6 +21,7 @@ public interface ParametersRepository extends ReactiveCassandraRepository<Parame
 
     Flux<ParameterEntity> findAllByUserId(String userId);
 
-    Mono<ParameterEntity> findByUserIdAndName(String userId, String name);
+    Flux<ParameterEntity> findAllByUserIdAndAppName(String userId, String appName);
 
+    Mono<ParameterEntity> findByUserIdAndAppNameAndName(String userId, String appName, String name);
 }

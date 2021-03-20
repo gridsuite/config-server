@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
+ * @author Slimane Amar <slimane.amar at rte-france.com>
  */
 
 @RestController
@@ -33,23 +32,31 @@ public class ConfigController {
     }
 
     @GetMapping(value = "/parameters", produces = "application/json")
-    @Operation(summary = "get the values of configuration parameters")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The list of configuration parameters")})
+    @Operation(summary = "get all configuration parameters for an user")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "All configuration parameters for the user")})
     public ResponseEntity<Flux<ParameterInfos>> getParameters(@RequestHeader("userId") String userId) {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId));
     }
 
-    @GetMapping(value = "/parameters/{name}", produces = "application/json")
-    @Operation(summary = "get the value of configuration parameters for the given param name")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The wanted configuration parameter")})
-    public ResponseEntity<Mono<ParameterInfos>> getParameter(@RequestHeader("userId") String userId, @PathVariable("name") String name) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameter(userId, name));
+    @GetMapping(value = "/applications/{appName}/parameters", produces = "application/json")
+    @Operation(summary = "get all configuration parameters for an user and an application")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The list of configuration parameters for the application")})
+    public ResponseEntity<Flux<ParameterInfos>> getParameters(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId, appName));
     }
 
-    @PutMapping(value = "/parameters", produces = "application/json")
-    @Operation(summary = "update the values for a set of configuration parameters")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The parameters are updated")})
-    public ResponseEntity<Mono<Void>> updateParams(@RequestHeader("userId") String userId, @RequestBody List<ParameterInfos> parameterInfosList) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateParameters(userId, parameterInfosList));
+    @GetMapping(value = "/applications/{appName}/parameters/{name}", produces = "application/json")
+    @Operation(summary = "get a configuration parameter for a given name")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The configuration parameter for the application")})
+    public ResponseEntity<Mono<ParameterInfos>> getParameter(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName, @PathVariable("name") String name) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameter(userId, appName, name));
+    }
+
+    @PutMapping(value = "/applications/{appName}/parameters/{name}", produces = "application/json")
+    @Operation(summary = "update a configuration parameter for given name and value")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The parameter are updated")})
+    public ResponseEntity<Mono<Void>> updateParameter(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName,
+                                                      @PathVariable(value = "name") String name, @RequestParam("value") String value) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateConfigParameter(userId, appName, name, value));
     }
 }

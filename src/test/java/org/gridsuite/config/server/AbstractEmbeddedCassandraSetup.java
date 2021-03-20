@@ -6,7 +6,9 @@
  */
 package org.gridsuite.config.server;
 
+import com.github.nosan.embedded.cassandra.api.cql.CqlDataSet;
 import org.gridsuite.config.test.EmbeddedCassandraFactoryConfig;
+import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.github.nosan.embedded.cassandra.api.connection.ClusterCassandraConnection;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,4 +29,8 @@ public abstract class AbstractEmbeddedCassandraSetup {
     @Autowired
     private ClusterCassandraConnection clusterCassandraConnection;
 
+    @Before
+    public void setup() {
+        CqlDataSet.ofClasspaths("truncate.cql").forEachStatement(clusterCassandraConnection::execute);
+    }
 }
