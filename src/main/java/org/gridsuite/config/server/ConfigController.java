@@ -32,14 +32,14 @@ public class ConfigController {
     }
 
     @GetMapping(value = "/parameters", produces = "application/json")
-    @Operation(summary = "get all configuration parameters for an user")
+    @Operation(summary = "get all configuration parameters for a user")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "All configuration parameters for the user")})
     public ResponseEntity<Flux<ParameterInfos>> getParameters(@RequestHeader("userId") String userId) {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId));
     }
 
     @GetMapping(value = "/applications/{appName}/parameters", produces = "application/json")
-    @Operation(summary = "get all configuration parameters for an user and an application")
+    @Operation(summary = "get all configuration parameters for a user and an application")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The list of configuration parameters for the application")})
     public ResponseEntity<Flux<ParameterInfos>> getParameters(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName) {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId, appName));
