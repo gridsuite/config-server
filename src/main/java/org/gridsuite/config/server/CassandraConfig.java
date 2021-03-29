@@ -6,20 +6,15 @@
  */
 package org.gridsuite.config.server;
 
-import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.type.codec.registry.CodecRegistry;
-import com.datastax.oss.driver.internal.core.type.codec.registry.DefaultCodecRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.data.cassandra.config.AbstractReactiveCassandraConfiguration;
 import org.springframework.data.cassandra.config.CqlSessionFactoryBean;
-import org.springframework.data.cassandra.config.SessionFactoryFactoryBean;
-import org.springframework.data.cassandra.core.CassandraAdminTemplate;
-import org.springframework.data.cassandra.core.convert.CassandraConverter;
-import org.springframework.data.cassandra.core.convert.MappingCassandraConverter;
-import org.springframework.data.cassandra.core.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.repository.config.EnableReactiveCassandraRepositories;
+
+import static org.gridsuite.config.server.CassandraConstants.KEYSPACE_CONFIG;
 
 /**
  * @author Abdelsalem HEDHILI <abdelsalem.hedhili at rte-france.com>
@@ -29,41 +24,20 @@ import org.springframework.data.cassandra.repository.config.EnableReactiveCassan
 @PropertySource(value = {"classpath:cassandra.properties"})
 @PropertySource(value = {"file:/config/cassandra.properties"}, ignoreResourceNotFound = true)
 @EnableReactiveCassandraRepositories
-public class CassandraConfig {
+public class CassandraConfig extends AbstractReactiveCassandraConfiguration {
 
     @Bean
-    public CqlSessionFactoryBean session(Environment env) {
+    public CqlSessionFactoryBean cassandraSession(Environment env) {
         CqlSessionFactoryBean session = new CqlSessionFactoryBean();
         session.setContactPoints(env.getRequiredProperty("cassandra.contact-points"));
         session.setPort(Integer.parseInt(env.getRequiredProperty("cassandra.port")));
         session.setLocalDatacenter("datacenter1");
-        session.setKeyspaceName(CassandraConstants.KEYSPACE_CONFIG);
+        session.setKeyspaceName(KEYSPACE_CONFIG);
         return session;
     }
 
-    @Bean
-    public CassandraMappingContext mappingContext() {
-        return new CassandraMappingContext();
-    }
-
-    @Bean
-    public CassandraConverter converter(CassandraMappingContext mappingContext) {
-        MappingCassandraConverter mappingCassandraConverter = new MappingCassandraConverter(mappingContext);
-        CodecRegistry codecRegistry = new DefaultCodecRegistry("");
-        mappingCassandraConverter.setCodecRegistry(codecRegistry);
-        return mappingCassandraConverter;
-    }
-
-    @Bean
-    public SessionFactoryFactoryBean sessionFactory(CqlSession session, CassandraConverter converter) {
-        SessionFactoryFactoryBean sessionFactory = new SessionFactoryFactoryBean();
-        sessionFactory.setSession(session);
-        sessionFactory.setConverter(converter);
-        return sessionFactory;
-    }
-
-    @Bean
-    public CassandraAdminTemplate cassandraTemplate(CqlSession session, CassandraConverter converter) {
-        return new CassandraAdminTemplate(session, converter);
+    @Override
+    protected String getKeyspaceName() {
+        return KEYSPACE_CONFIG;
     }
 }
