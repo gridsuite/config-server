@@ -11,9 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.cassandra.config.AbstractReactiveCassandraConfiguration;
-import org.springframework.data.cassandra.config.CassandraClusterFactoryBean;
-import org.springframework.data.cassandra.core.mapping.CassandraMappingContext;
-import org.springframework.data.cassandra.core.mapping.SimpleUserTypeResolver;
+import org.springframework.data.cassandra.config.CqlSessionFactoryBean;
 import org.springframework.data.cassandra.repository.config.EnableReactiveCassandraRepositories;
 
 /**
@@ -31,23 +29,14 @@ public class CassandraConfig extends AbstractReactiveCassandraConfiguration {
         return CassandraConstants.KEYSPACE_CONFIG;
     }
 
-    @Override
-    protected boolean getMetricsEnabled() {
-        return false;
+    @Bean
+    public CqlSessionFactoryBean cassandraSession(Environment env) {
+        CqlSessionFactoryBean session = new CqlSessionFactoryBean();
+        session.setContactPoints(env.getRequiredProperty("cassandra.contact-points"));
+        session.setPort(Integer.parseInt(env.getRequiredProperty("cassandra.port")));
+        session.setLocalDatacenter("datacenter1");
+        session.setKeyspaceName(getKeyspaceName());
+        return session;
     }
 
-    @Bean
-    public CassandraClusterFactoryBean cluster(Environment env) {
-        CassandraClusterFactoryBean cluster = new CassandraClusterFactoryBean();
-        cluster.setContactPoints(env.getRequiredProperty("cassandra.contact-points"));
-        cluster.setPort(Integer.parseInt(env.getRequiredProperty("cassandra.port")));
-        return cluster;
-    }
-
-    @Bean
-    public CassandraMappingContext cassandraMapping(Environment env) {
-        CassandraMappingContext mappingContext =  new CassandraMappingContext();
-        mappingContext.setUserTypeResolver(new SimpleUserTypeResolver(cluster(env).getObject(), CassandraConstants.KEYSPACE_CONFIG));
-        return mappingContext;
-    }
 }
