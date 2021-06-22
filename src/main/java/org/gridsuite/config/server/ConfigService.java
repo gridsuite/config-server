@@ -9,9 +9,12 @@ package org.gridsuite.config.server;
 import org.gridsuite.config.server.dto.ParameterInfos;
 import org.gridsuite.config.server.repository.ParameterEntity;
 import org.gridsuite.config.server.repository.ParametersRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,6 +30,8 @@ public class ConfigService {
     private final ParametersRepository configRepository;
 
     private static final String CATEGORY_BROKER_OUTPUT = ConfigService.class.getName() + ".output-broker-messages";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CATEGORY_BROKER_OUTPUT);
 
     static final String HEADER_USER_ID = "userId";
     static final String HEADER_APP_NAME = "appName";
@@ -54,13 +59,14 @@ public class ConfigService {
 
     Mono<Void> updateConfigParameter(String userId, String appName, String name, String value) {
         return updateParameter(userId, appName, name, value)
-                .doOnSuccess(p ->
-                    configUpdatePublisher.send("publishConfigUpdate-out-0", MessageBuilder.withPayload("")
-                        .setHeader(HEADER_USER_ID, userId)
-                        .setHeader(HEADER_APP_NAME, appName)
-                        .setHeader(HEADER_PARAMETER_NAME, name)
-                        .build())
-                )
+                .doOnSuccess(p -> {
+                    Message<String> message = MessageBuilder.withPayload("")
+                            .setHeader(HEADER_USER_ID, userId)
+                            .setHeader(HEADER_APP_NAME, appName)
+                            .setHeader(HEADER_PARAMETER_NAME, name)
+                            .build();
+                    sendUpdateMessage(message);
+                })
                 .then();
     }
 
@@ -72,5 +78,10 @@ public class ConfigService {
                     return configRepository.save(parameterEntity);
                 })
                 .map(ParameterEntity::toConfigInfos);
+    }
+
+    private void sendUpdateMessage(Message<String> message) {
+        LOGGER.debug("Sending message : {}", message);
+        configUpdatePublisher.send("publishConfigUpdate-out-0", message);
     }
 }
