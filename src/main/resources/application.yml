@@ -11,3 +11,4 @@ spring:
       bindings:
         publishConfigUpdate-out-0:
           destination: config.update
+      source: publishConfigUpdate
