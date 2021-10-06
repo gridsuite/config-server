@@ -1,10 +1,12 @@
 server :
-  port : 5025
   forward-headers-strategy: framework
 
 spring:
+  profiles:
+    active: default,local
+
   rabbitmq:
-    addresses: localhost
+    addresses: rabbitmq
     port: 5672
 
   cloud:

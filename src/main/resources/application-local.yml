@@ -1,0 +1,7 @@
+server :
+  port : 5025
+
+spring:
+  rabbitmq:
+    addresses: localhost
+    port: 5672
