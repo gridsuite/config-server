@@ -1,0 +1,9 @@
+# TODO can we use the normal database.properties instead of overriding everything ?
+spring:
+  r2dbc:
+    # TODO what is this '././' ?? see https://github.com/r2dbc/r2dbc-h2/issues/150
+    url: r2dbc:h2:file://././target/config
+  liquibase:
+    url: jdbc:h2:file:./target/config
+
+logging.level.root: debug

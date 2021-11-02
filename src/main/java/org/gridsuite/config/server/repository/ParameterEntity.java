@@ -6,14 +6,15 @@
  */
 package org.gridsuite.config.server.repository;
 
-import lombok.AllArgsConstructor;
+import java.util.UUID;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.gridsuite.config.server.dto.ParameterInfos;
-import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
-import org.springframework.data.cassandra.core.mapping.Column;
-import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
-import org.springframework.data.cassandra.core.mapping.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.domain.Persistable;
 
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
@@ -21,23 +22,39 @@ import org.springframework.data.cassandra.core.mapping.Table;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @Table("parameters")
-public class ParameterEntity {
+// TODO is it possible not to implement persistable ?
+public class ParameterEntity implements Persistable<UUID> {
 
-    @PrimaryKeyColumn(name = "userId", type = PrimaryKeyType.PARTITIONED)
+    // Explicitly using a constructor without isNew otherwise it ignores @Transient:
+    // https://github.com/spring-projects/spring-data-r2dbc/issues/320#issuecomment-601092991
+    public ParameterEntity(UUID id, String userId, String appName, String name, String value) {
+        this.id = id;
+        this.userId = userId;
+        this.appName = appName;
+        this.name = name;
+        this.value = value;
+    }
+
+    @Id
+    //TODO spring-data-r2dbc doesn't allow composite ids, remove this when possible
+    private UUID id;
+
     private String userId;
 
-    @PrimaryKeyColumn(name = "appName", type = PrimaryKeyType.CLUSTERED)
     private String appName;
 
-    @PrimaryKeyColumn(name = "name", type = PrimaryKeyType.CLUSTERED)
     private String name;
 
-    @Column("value")
     private String value;
 
     public ParameterInfos toConfigInfos() {
         return new ParameterInfos(this.getName(), this.getValue());
     }
+
+    @Transient
+    //TODO is it possible to have spring-data-r2dbc autogenerate UUIDs for us ?
+    //if not implementing Persistable, and setting the id to null, I got:
+    //NULL not allowed for column "ID";
+    private boolean isNew = false;
 }

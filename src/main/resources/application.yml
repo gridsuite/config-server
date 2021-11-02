@@ -5,6 +5,15 @@ spring:
   profiles:
     active: default,local
 
+  r2dbc:
+    url: ${dbUrlR2dbc}
+    username: ${login}
+    password: ${password}
+  liquibase:
+    url: ${dbUrlJdbc}
+    user: ${login}
+    password: ${password}
+
   rabbitmq:
     addresses: rabbitmq
     port: 5672
@@ -15,3 +24,9 @@ spring:
         publishConfigUpdate-out-0:
           destination: config.update
       source: publishConfigUpdate
+
+queryBegin: '?'
+customQueryBegin: '?'
+customQuery:
+dbName: config
+dbApi: r2dbc
