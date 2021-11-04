@@ -127,6 +127,9 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <!--
+                To remove when liquibase implements schema creation through r2dbc instead of jdbc
+            -->
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
@@ -137,6 +140,11 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <!--
+                spring-data-jdbc needed by liquibase-core, or else we get a ClassNotFoundError.
+                To remove when liquibase implements schema creation through r2dbc instead of jdbc
+                see https://github.com/liquibase/liquibase/issues/1470
+            -->
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jdbc</artifactId>
             <scope>runtime</scope>
@@ -146,8 +154,12 @@
             <groupId>io.r2dbc</groupId>
             <artifactId>r2dbc-h2</artifactId>
             <version>0.8.4.RELEASE</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
+            <!--
+                To remove when liquibase implements schema creation through r2dbc instead of jdbc
+            -->
            <groupId>com.h2database</groupId>
            <artifactId>h2</artifactId>
            <scope>test</scope>
