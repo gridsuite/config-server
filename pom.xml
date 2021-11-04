@@ -47,8 +47,6 @@
         <java.version>11</java.version>
 
         <jib.container.environment>SPRING_PROFILES_ACTIVE=default</jib.container.environment>
-        <r2dbc-h2.version>0.8.4.RELEASE</r2dbc-h2.version>
-        <r2dbc-postgresql.version>0.8.6.RELEASE</r2dbc-postgresql.version>
         <gridsuite-dependencies.version>11</gridsuite-dependencies.version>
     </properties>
 
@@ -123,7 +121,6 @@
         <dependency>
             <groupId>io.r2dbc</groupId>
             <artifactId>r2dbc-postgresql</artifactId>
-            <version>${r2dbc-postgresql.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -153,7 +150,6 @@
         <dependency>
             <groupId>io.r2dbc</groupId>
             <artifactId>r2dbc-h2</artifactId>
-            <version>0.8.4.RELEASE</version>
             <scope>test</scope>
         </dependency>
         <dependency>
