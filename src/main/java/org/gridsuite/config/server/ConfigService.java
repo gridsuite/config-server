@@ -18,6 +18,7 @@ import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import java.util.UUID;
 
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
@@ -72,7 +73,12 @@ public class ConfigService {
 
     private Mono<ParameterInfos> updateParameter(String userId, String appName, String name, String value) {
         return configRepository.findByUserIdAndAppNameAndName(userId, appName, name)
-                .switchIfEmpty(Mono.just(new ParameterEntity(userId, appName, name, value)))
+                .switchIfEmpty(Mono.fromCallable(() -> {
+                    var uuid = UUID.randomUUID();
+                    var e = new ParameterEntity(uuid, userId, appName, name, value);
+                    e.setNew(true);
+                    return e;
+                }))
                 .flatMap(parameterEntity -> {
                     parameterEntity.setValue(value);
                     return configRepository.save(parameterEntity);

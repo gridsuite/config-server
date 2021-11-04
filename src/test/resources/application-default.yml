@@ -1,0 +1,15 @@
+# TODO can we use the normal database.properties instead of overriding everything ?
+# TODO, using 'file' database instead of the classic 'mem' database, otherwise
+# the database created by jdbc at startup was not used by r2dbc during the tests, why?
+spring:
+  r2dbc:
+    # TODO what is this '././' ?? see https://github.com/r2dbc/r2dbc-h2/issues/150
+    url: r2dbc:h2:file://././target/config
+  liquibase:
+    url: jdbc:h2:file:./target/config
+
+logging:
+  level:
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: debug
+    org.springframework.r2dbc.core.DefaultDatabaseClient: debug
+    org.springframework.integration.handler.BridgeHandler: debug

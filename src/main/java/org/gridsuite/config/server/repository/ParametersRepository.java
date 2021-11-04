@@ -6,18 +6,19 @@
  */
 package org.gridsuite.config.server.repository;
 
-import org.springframework.data.cassandra.repository.ReactiveCassandraRepository;
+import java.util.UUID;
+
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
- * @author Slimane Amar <slimane.amar at rte-france.com>
+ * @author Jon Harper <jon.harper at rte-france.com>
  */
 
 @Repository
-public interface ParametersRepository extends ReactiveCassandraRepository<ParameterEntity, String> {
+public interface ParametersRepository extends ReactiveCrudRepository<ParameterEntity, UUID> {
 
     Flux<ParameterEntity> findAllByUserId(String userId);
 

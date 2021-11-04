@@ -9,11 +9,13 @@ package org.gridsuite.config.server;
 import java.util.List;
 
 import org.gridsuite.config.server.dto.ParameterInfos;
+import org.gridsuite.config.server.repository.ParametersRepository;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -24,7 +26,6 @@ import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.config.EnableWebFlux;
@@ -36,14 +37,22 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 @AutoConfigureWebTestClient
 @EnableWebFlux
 @SpringBootTest
-@ContextHierarchy({@ContextConfiguration(classes = {ConfigApplication.class, TestChannelBinderConfiguration.class})})
-public class ConfigTest extends AbstractEmbeddedCassandraSetup {
+@ContextConfiguration(classes = {ConfigApplication.class, TestChannelBinderConfiguration.class})
+public class ConfigTest {
 
     @Autowired
     private WebTestClient webTestClient;
 
     @Autowired
     private OutputDestination output;
+
+    @Autowired
+    private ParametersRepository parametersRepository;
+
+    @Before
+    public void setup() {
+        parametersRepository.deleteAll().block();
+    }
 
     @Test
     public void testCreateParameters() {
