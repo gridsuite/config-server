@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: config-server
+
+  cloud:
+    stream:
+      bindings:
+        publishConfigUpdate-out-0:
+          destination: config.update
+      source: publishConfigUpdate
+
+dbName: config
