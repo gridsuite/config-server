@@ -6,7 +6,7 @@ spring:
     stream:
       bindings:
         publishConfigUpdate-out-0:
-          destination: config.update
+          destination: ${powsybl-ws.rabbitmq.destination.prefix:}config.update
       source: publishConfigUpdate
 
 dbName: config
