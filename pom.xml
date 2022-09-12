@@ -46,7 +46,7 @@
     <properties>
         <java.version>11</java.version>
 
-        <gridsuite-dependencies.version>18</gridsuite-dependencies.version>
+        <gridsuite-dependencies.version>19-SNAPSHOT</gridsuite-dependencies.version>
     </properties>
 
     <build>
@@ -122,7 +122,7 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>io.r2dbc</groupId>
+            <groupId>org.postgresql</groupId>
             <artifactId>r2dbc-postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
