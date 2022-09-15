@@ -30,6 +30,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
+import static org.gridsuite.config.server.service.NotificationService.HEADER_USER_ID;
+import static org.gridsuite.config.server.service.NotificationService.HEADER_APP_NAME;
+import static org.gridsuite.config.server.service.NotificationService.HEADER_PARAMETER_NAME;
+
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
  */
@@ -90,9 +94,9 @@ public class ConfigTest {
         Message<byte[]> message = output.receive(1000);
         assertEquals("", new String(message.getPayload()));
         MessageHeaders headers = message.getHeaders();
-        assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
-        assertEquals("foo", headers.get(ConfigService.HEADER_APP_NAME));
-        assertEquals("testKey", headers.get(ConfigService.HEADER_PARAMETER_NAME));
+        assertEquals("userId", headers.get(HEADER_USER_ID));
+        assertEquals("foo", headers.get(HEADER_APP_NAME));
+        assertEquals("testKey", headers.get(HEADER_PARAMETER_NAME));
 
         parameterInfos1.setValue("updatedValue");
 
@@ -117,9 +121,9 @@ public class ConfigTest {
         message = output.receive(1000);
         assertEquals("", new String(message.getPayload()));
         headers = message.getHeaders();
-        assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
-        assertEquals("foo", headers.get(ConfigService.HEADER_APP_NAME));
-        assertEquals("testKey", headers.get(ConfigService.HEADER_PARAMETER_NAME));
+        assertEquals("userId", headers.get(HEADER_USER_ID));
+        assertEquals("foo", headers.get(HEADER_APP_NAME));
+        assertEquals("testKey", headers.get(HEADER_PARAMETER_NAME));
 
         ParameterInfos parameterInfos2 = new ParameterInfos("testKey2", "testValue2");
 
@@ -146,9 +150,9 @@ public class ConfigTest {
         message = output.receive(1000);
         assertEquals("", new String(message.getPayload()));
         headers = message.getHeaders();
-        assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
-        assertEquals("foo", headers.get(ConfigService.HEADER_APP_NAME));
-        assertEquals("testKey2", headers.get(ConfigService.HEADER_PARAMETER_NAME));
+        assertEquals("userId", headers.get(HEADER_USER_ID));
+        assertEquals("foo", headers.get(HEADER_APP_NAME));
+        assertEquals("testKey2", headers.get(HEADER_PARAMETER_NAME));
 
         assertNull(output.receive(1000));
     }
@@ -199,9 +203,9 @@ public class ConfigTest {
         Message<byte[]> message = output.receive(1000);
         assertEquals("", new String(message.getPayload()));
         MessageHeaders headers = message.getHeaders();
-        assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
-        assertEquals("common", headers.get(ConfigService.HEADER_APP_NAME));
-        assertEquals("commonParam", headers.get(ConfigService.HEADER_PARAMETER_NAME));
+        assertEquals("userId", headers.get(HEADER_USER_ID));
+        assertEquals("common", headers.get(HEADER_APP_NAME));
+        assertEquals("commonParam", headers.get(HEADER_PARAMETER_NAME));
 
         //insert config parameter 'specificParam' for 'bar' application
         webTestClient.put()
@@ -214,9 +218,9 @@ public class ConfigTest {
         message = output.receive(1000);
         assertEquals("", new String(message.getPayload()));
         headers = message.getHeaders();
-        assertEquals("userId", headers.get(ConfigService.HEADER_USER_ID));
-        assertEquals("bar", headers.get(ConfigService.HEADER_APP_NAME));
-        assertEquals("specificParam", headers.get(ConfigService.HEADER_PARAMETER_NAME));
+        assertEquals("userId", headers.get(HEADER_USER_ID));
+        assertEquals("bar", headers.get(HEADER_APP_NAME));
+        assertEquals("specificParam", headers.get(HEADER_PARAMETER_NAME));
 
         //get all commmon config parameters and expect the added one
         webTestClient.get()
