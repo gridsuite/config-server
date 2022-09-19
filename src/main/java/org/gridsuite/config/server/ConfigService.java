@@ -10,13 +10,11 @@ import org.gridsuite.config.server.dto.ParameterInfos;
 import org.gridsuite.config.server.repository.ParameterEntity;
 import org.gridsuite.config.server.repository.ParametersRepository;
 import org.gridsuite.config.server.service.NotificationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.util.UUID;
 
 /**
@@ -28,13 +26,6 @@ import java.util.UUID;
 public class ConfigService {
 
     private final ParametersRepository configRepository;
-
-    private static final String CATEGORY_BROKER_OUTPUT = ConfigService.class.getName() + ".output-broker-messages";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CATEGORY_BROKER_OUTPUT);
-
-    @Autowired
-    private StreamBridge configUpdatePublisher;
 
     @Autowired
     private NotificationService notificationService;
