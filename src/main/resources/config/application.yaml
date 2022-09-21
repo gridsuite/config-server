@@ -9,4 +9,6 @@ spring:
           destination: ${powsybl-ws.rabbitmq.destination.prefix:}config.update
       source: publishConfigUpdate
 
-dbName: config
+powsybl-ws:
+  database:
+    name: config
