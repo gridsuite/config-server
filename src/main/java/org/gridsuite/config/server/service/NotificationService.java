@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
  * @author Seddik Yengui <seddik.yengui at rte-france.com>
  */
 
+// Today we don't send notification inside @Transactional block. If this behavior change, we should use @PostCompletion to
+// make sure that the notification is sent only when all the work inside @Transactional block is done.
 @Service
 public class NotificationService {
 
