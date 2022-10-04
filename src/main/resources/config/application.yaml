@@ -7,8 +7,10 @@ spring:
       bindings:
         publishConfigUpdate-out-0:
           destination: ${powsybl-ws.rabbitmq.destination.prefix:}config.update
-      source: publishConfigUpdate
+      output-bindings: publishConfigUpdate
 
 powsybl-ws:
   database:
     name: config
+
+spring.jpa.hibernate.ddl-auto: update

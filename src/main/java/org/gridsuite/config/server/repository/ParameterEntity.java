@@ -13,6 +13,7 @@ import lombok.Setter;
 import org.gridsuite.config.server.dto.ParameterInfos;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.data.domain.Persistable;
 
@@ -46,6 +47,7 @@ public class ParameterEntity implements Persistable<UUID> {
 
     private String name;
 
+    @Column("value_")
     private String value;
 
     public ParameterInfos toConfigInfos() {
