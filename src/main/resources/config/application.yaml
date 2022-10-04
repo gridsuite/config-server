@@ -9,6 +9,8 @@ spring:
           destination: ${powsybl-ws.rabbitmq.destination.prefix:}config.update
       output-bindings: publishConfigUpdate
 
-dbName: config
+powsybl-ws:
+  database:
+    name: config
 
 spring.jpa.hibernate.ddl-auto: update
