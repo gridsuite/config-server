@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.gridsuite.config.server.dto.ParameterInfos;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -48,8 +49,10 @@ public class ConfigController {
     @GetMapping(value = "/applications/{appName}/parameters/{name}", produces = "application/json")
     @Operation(summary = "get a configuration parameter for a given name")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The configuration parameter for the application")})
-    public ResponseEntity<Mono<ParameterInfos>> getParameter(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName, @PathVariable("name") String name) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameter(userId, appName, name));
+    public Mono<ResponseEntity<ParameterInfos>> getParameter(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName, @PathVariable("name") String name) {
+        return configService.getConfigParameter(userId, appName, name)
+            .map(result -> ResponseEntity.ok().body(result))
+            .defaultIfEmpty(ResponseEntity.status(HttpStatus.NO_CONTENT).build());
     }
 
     @PutMapping(value = "/applications/{appName}/parameters/{name}", produces = "application/json")
