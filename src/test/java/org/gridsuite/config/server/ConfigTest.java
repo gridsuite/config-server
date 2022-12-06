@@ -267,20 +267,14 @@ public class ConfigTest {
                 .uri("/v1/applications/common/parameters/specificParam")
                 .header("userId", "userId")
                 .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(ParameterInfos.class)
-                .isEqualTo(null);
+                .expectStatus().isNoContent();
 
         //get an unknown parameter for 'bar' application
         webTestClient.get()
                 .uri("/v1/applications/bar/parameters/commonParam")
                 .header("userId", "userId")
                 .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(ParameterInfos.class)
-                .isEqualTo(null);
+                .expectStatus().isNoContent();
 
         assertNull(output.receive(1000));
     }
