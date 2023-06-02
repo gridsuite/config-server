@@ -1,9 +1,9 @@
 databaseChangeLog:
 
   - include:
-      file: changesets/changelog_2021-11-02T15:30:00Z.xml
+      file: changesets/changelog_20211102T153000Z.xml
       relativeToChangelogFile: true
 
   - include:
-      file: changesets/changelog_2022-02-09T18:30:00Z.xml
+      file: changesets/changelog_20220209T183000Z.xml
       relativeToChangelogFile: true
