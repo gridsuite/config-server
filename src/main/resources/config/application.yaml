@@ -7,7 +7,7 @@ spring:
       bindings:
         publishConfigUpdate-out-0:
           destination: ${powsybl-ws.rabbitmq.destination.prefix:}config.update
-      output-bindings: publishConfigUpdate
+      output-bindings: publishConfigUpdate-out-0
 
 powsybl-ws:
   database:
