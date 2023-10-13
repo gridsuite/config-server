@@ -43,6 +43,7 @@
 
     <properties>
         <gridsuite-dependencies.version>26</gridsuite-dependencies.version>
+        <liquibase-hibernate-package>org.gridsuite.config.server</liquibase-hibernate-package>
     </properties>
 
     <build>

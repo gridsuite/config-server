@@ -4,12 +4,18 @@
 spring:
   r2dbc:
     # TODO what is this '././' ?? see https://github.com/r2dbc/r2dbc-h2/issues/150
-    url: r2dbc:h2:file://././target/config
+    url: r2dbc:h2:file://././target/config;MODE=PostgreSQL
   liquibase:
-    url: jdbc:h2:file:./target/config
+    url: jdbc:h2:file:./target/config;MODE=PostgreSQL
 
 logging:
   level:
     org.springframework.web.server.adapter.HttpWebHandlerAdapter: debug
     org.springframework.r2dbc.core.DefaultDatabaseClient: debug
     org.springframework.integration.handler.BridgeHandler: debug
+
+powsybl-ws:
+  database:
+    vendor: h2:mem
+    query: ;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    hostPort: ":"
