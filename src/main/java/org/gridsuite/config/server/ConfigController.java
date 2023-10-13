@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.gridsuite.config.server.dto.ParameterInfos;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +26,9 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping(value = "/" + ConfigApi.API_VERSION)
 public class ConfigController {
-
     private final ConfigService configService;
 
+    @Autowired
     public ConfigController(ConfigService configService) {
         this.configService = configService;
     }

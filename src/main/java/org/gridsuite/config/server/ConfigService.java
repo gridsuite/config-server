@@ -24,15 +24,13 @@ import java.util.UUID;
 
 @Service
 public class ConfigService {
-
     private final ParametersRepository configRepository;
+    private final NotificationService notificationService;
 
     @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    public ConfigService(ParametersRepository configRepository) {
+    public ConfigService(ParametersRepository configRepository, NotificationService notificationService) {
         this.configRepository = configRepository;
+        this.notificationService = notificationService;
     }
 
     Flux<ParameterInfos> getConfigParameters(String userId) {

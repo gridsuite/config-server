@@ -16,7 +16,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
  */
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication
+@SpringBootApplication(scanBasePackageClasses = {ConfigApplication.class})
 @EnableWebFlux
 public class ConfigApplication {
 
