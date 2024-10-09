@@ -6,17 +6,12 @@
  */
 package org.gridsuite.config.server;
 
-import java.util.List;
-
 import org.gridsuite.config.server.dto.ParameterInfos;
 import org.gridsuite.config.server.repository.ParametersRepository;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,24 +20,22 @@ import org.springframework.cloud.stream.binder.test.TestChannelBinderConfigurati
 import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
-import static org.gridsuite.config.server.service.NotificationService.HEADER_USER_ID;
-import static org.gridsuite.config.server.service.NotificationService.HEADER_APP_NAME;
-import static org.gridsuite.config.server.service.NotificationService.HEADER_PARAMETER_NAME;
+import java.util.List;
+
+import static org.gridsuite.config.server.service.NotificationService.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
  */
-@RunWith(SpringRunner.class)
 @AutoConfigureWebTestClient
 @EnableWebFlux
-@SpringBootTest
-@ContextConfiguration(classes = {ConfigApplication.class, TestChannelBinderConfiguration.class})
-public class ConfigTest {
+@SpringBootTest(classes = {ConfigApplication.class, TestChannelBinderConfiguration.class})
+class ConfigTest {
 
     @Autowired
     private WebTestClient webTestClient;
@@ -53,13 +46,13 @@ public class ConfigTest {
     @Autowired
     private ParametersRepository parametersRepository;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         parametersRepository.deleteAll().block();
     }
 
     @Test
-    public void testCreateParameters() {
+    void testCreateParameters() {
         //get all config parameters for 'foo' application -> expect empty list
         webTestClient.get()
                 .uri("/v1/applications/foo/parameters")
@@ -158,7 +151,7 @@ public class ConfigTest {
     }
 
     @Test
-    public void testGetParameters() {
+    void testGetParameters() {
         //get all config parameters -> expect empty list
         webTestClient.get()
                 .uri("/v1/parameters")
@@ -316,4 +309,3 @@ public class ConfigTest {
         }
     }
 }
-
