@@ -10,6 +10,6 @@ spring:
 
 logging:
   level:
-    org.springframework.web.server.adapter.HttpWebHandlerAdapter: debug
-    org.springframework.r2dbc.core.DefaultDatabaseClient: debug
-    org.springframework.integration.handler.BridgeHandler: debug
+    org.springframework.web.server.adapter.http-web-handler-adapter: debug
+    org.springframework.r2dbc.core.default-database-client: debug
+    org.springframework.integration.handler.bridge-handler: debug
