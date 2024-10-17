@@ -10,7 +10,7 @@ import org.gridsuite.config.server.dto.ParameterInfos;
 import org.gridsuite.config.server.repository.ParametersRepository;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -46,7 +46,7 @@ class ConfigTest {
     @Autowired
     private ParametersRepository parametersRepository;
 
-    @BeforeEach
+    @AfterEach
     void setup() {
         parametersRepository.deleteAll().block();
     }
