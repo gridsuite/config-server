@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 /**
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
  * @author Slimane Amar <slimane.amar at rte-france.com>
@@ -61,5 +63,13 @@ public class ConfigController {
     public ResponseEntity<Mono<Void>> updateParameter(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName,
                                                       @PathVariable(value = "name") String name, @RequestParam("value") String value) {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateConfigParameter(userId, appName, name, value));
+    }
+
+    @PutMapping(value = "/applications/{appName}/parameters", produces = "application/json")
+    @Operation(summary = "update the  configuration parameters")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The parameters are updated")})
+    public ResponseEntity<Mono<Void>> updateParameters(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName,
+                                                      @RequestBody Map<String, Object> parameters) {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateConfigParameters(userId, appName, parameters));
     }
 }

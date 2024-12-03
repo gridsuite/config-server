@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -66,5 +67,11 @@ public class ConfigService {
                     return configRepository.save(parameterEntity);
                 })
                 .map(ParameterEntity::toConfigInfos);
+    }
+
+    Mono<Void> updateConfigParameters(String userId, String appName, Map<String, Object> parameters) {
+        return Flux.fromIterable(parameters.entrySet())
+                .flatMap(entry -> updateConfigParameter(userId, appName, entry.getKey(), entry.getValue().toString()))
+                .then();
     }
 }
