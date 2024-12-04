@@ -23,7 +23,9 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.gridsuite.config.server.service.NotificationService.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -308,4 +310,103 @@ class ConfigTest {
             description.appendValue(source);
         }
     }
+
+    @Test
+    void testUpdateParameters() {
+        //get all config parameters for 'foo' application -> expect empty list
+        webTestClient.get()
+                .uri("/v1/applications/foo/parameters")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .isEqualTo(List.of());
+
+        ParameterInfos parameterInfos1 = new ParameterInfos("testKey1", "testValue1");
+        ParameterInfos parameterInfos2 = new ParameterInfos("testKey2", "testValue2");
+        List<ParameterInfos> paramInfosList = List.of(parameterInfos1, parameterInfos2);
+
+        //insert config parameter 'testKey1' for 'foo' application
+        webTestClient.put()
+                .uri("/v1/applications/foo/parameters/testKey1?value=testValue1")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk();
+
+        // assert that the broker message has been sent to notify parameter change
+        Message<byte[]> message = output.receive(1000);
+        assertEquals("", new String(message.getPayload()));
+        MessageHeaders headers = message.getHeaders();
+        assertEquals("userId", headers.get(HEADER_USER_ID));
+        assertEquals("foo", headers.get(HEADER_APP_NAME));
+        assertEquals("testKey1", headers.get(HEADER_PARAMETER_NAME));
+
+        //insert config parameter 'testKey2' for 'foo' application
+        webTestClient.put()
+                .uri("/v1/applications/foo/parameters/testKey2?value=testValue2")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk();
+
+        // assert that the broker message has been sent to notify parameter change
+        message = output.receive(1000);
+        assertEquals("", new String(message.getPayload()));
+        headers = message.getHeaders();
+        assertEquals("userId", headers.get(HEADER_USER_ID));
+        assertEquals("foo", headers.get(HEADER_APP_NAME));
+        assertEquals("testKey2", headers.get(HEADER_PARAMETER_NAME));
+
+        //get all config parameters for 'foo' application and expect the added one
+        webTestClient.get()
+                .uri("/v1/applications/foo/parameters")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosList));
+
+        // update the testKey parameter for 'foo' application
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("testKey1", "testUpdatedValue1");
+        parameters.put("testKey2", "testUpdatedValue2");
+        webTestClient.put()
+                .uri("/v1/applications/foo/parameters")
+                .header("userId", "userId")
+                .bodyValue(parameters)
+                .exchange()
+                .expectStatus().isOk();
+        ParameterInfos updatedParameterInfos1 = new ParameterInfos("testKey1", "testUpdatedValue1");
+        ParameterInfos updatedParameterInfos2 = new ParameterInfos("testKey2", "testUpdatedValue2");
+        List<ParameterInfos> paramInfosListUpdated = List.of(updatedParameterInfos1, updatedParameterInfos2);
+        //get all config parameters for 'foo' application and expect the updated one
+        webTestClient.get()
+                .uri("/v1/applications/foo/parameters")
+                .header("userId", "userId")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(ParameterInfos.class)
+                .value(new MatcherConfigParamList(paramInfosListUpdated));
+
+        // assert that the broker message has been sent to notify parameter change
+        message = output.receive(1000);
+        assertEquals("", new String(message.getPayload()));
+        headers = message.getHeaders();
+        assertEquals("userId", headers.get(HEADER_USER_ID));
+        assertEquals("foo", headers.get(HEADER_APP_NAME));
+        assertEquals("testKey2", headers.get(HEADER_PARAMETER_NAME));
+
+        // assert that the broker message has been sent to notify parameter change
+        message = output.receive(1000);
+        assertEquals("", new String(message.getPayload()));
+        headers = message.getHeaders();
+        assertEquals("userId", headers.get(HEADER_USER_ID));
+        assertEquals("foo", headers.get(HEADER_APP_NAME));
+        assertEquals("testKey1", headers.get(HEADER_PARAMETER_NAME));
+
+        assertNull(output.receive(1000));
+    }
+
 }
