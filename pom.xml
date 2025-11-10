@@ -41,8 +41,8 @@
         </developer>
     </developers>
 
-    <properties>
-        <gridsuite-dependencies.version>43.3.0-SNAPSHOT</gridsuite-dependencies.version>
+    <properties
+        <gridsuite-dependencies.version>44.1.0-SNAPSHOT</gridsuite-dependencies.version>
         <sonar.organization>gridsuite</sonar.organization>
         <sonar.projectKey>org.gridsuite:config-server</sonar.projectKey>
     </properties>
