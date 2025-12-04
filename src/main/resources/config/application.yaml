@@ -12,5 +12,8 @@ spring:
 powsybl-ws:
   database:
     name: config
+  autoconfigure:
+    base-exception-handler:
+      enable: false
 
 spring.jpa.hibernate.ddl-auto: update
