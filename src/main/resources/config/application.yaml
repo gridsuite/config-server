@@ -4,6 +4,11 @@ spring:
 
   cloud:
     stream:
+      function:
+        # needed otherwise ForwardedHeaderTransformer from spring-webflux
+        # server.forward-headers-strategy=FRAMEWORK is spuriously setup
+        # as a consumer and creating useless queues and connections
+        autodetect: false
       bindings:
         publishConfigUpdate-out-0:
           destination: ${powsybl-ws.rabbitmq.destination.prefix:}config.update
