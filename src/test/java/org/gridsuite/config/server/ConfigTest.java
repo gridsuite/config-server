@@ -277,7 +277,7 @@ class ConfigTest {
     private static class MatcherConfigParamList extends TypeSafeMatcher<List<ParameterInfos>> {
         List<ParameterInfos> source;
 
-        public MatcherConfigParamList(List<ParameterInfos> val) {
+        MatcherConfigParamList(List<ParameterInfos> val) {
             this.source = val;
         }
 
@@ -295,7 +295,7 @@ class ConfigTest {
     private static class MatcherConfigParam extends TypeSafeMatcher<ParameterInfos> {
         ParameterInfos source;
 
-        public MatcherConfigParam(ParameterInfos val) {
+        MatcherConfigParam(ParameterInfos val) {
             this.source = val;
         }
 
