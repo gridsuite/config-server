@@ -4,9 +4,9 @@
 spring:
   r2dbc:
     # TODO what is this '././' ?? see https://github.com/r2dbc/r2dbc-h2/issues/150
-    url: r2dbc:h2:file://././target/config
+    url: r2dbc:h2:file://././target/config;CASE_INSENSITIVE_IDENTIFIERS=TRUE
   liquibase:
-    url: jdbc:h2:file:./target/config
+    url: jdbc:h2:file:./target/config;CASE_INSENSITIVE_IDENTIFIERS=TRUE
 
 logging:
   level:
