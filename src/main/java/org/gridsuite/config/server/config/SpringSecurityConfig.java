@@ -22,7 +22,7 @@ public class SpringSecurityConfig {
 
     @Bean
     @SuppressWarnings("java:S4502") // Authentication is handled by the gateway
-    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) throws Exception {
+    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
         http
             // Authentication is performed by the API gateway and propagated through trusted
             // headers. This service is stateless and does not use browser cookies or sessions.
