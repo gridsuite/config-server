@@ -20,6 +20,7 @@ import org.springframework.cloud.stream.binder.test.TestChannelBinderConfigurati
 import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
@@ -54,6 +55,7 @@ class ConfigTest {
     }
 
     @Test
+    @WithMockUser(username = "userId")
     void testCreateParameters() {
         //get all config parameters for 'foo' application -> expect empty list
         webTestClient.get()
@@ -153,6 +155,7 @@ class ConfigTest {
     }
 
     @Test
+    @WithMockUser(username = "userId")
     void testGetParameters() {
         //get all config parameters -> expect empty list
         webTestClient.get()
@@ -312,6 +315,7 @@ class ConfigTest {
     }
 
     @Test
+    @WithMockUser(username = "userId")
     void testUpdateParameters() {
         //get all config parameters for 'foo' application -> expect empty list
         webTestClient.get()
