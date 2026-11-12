@@ -6,6 +6,7 @@
  */
 package org.gridsuite.config.server;
 
+import com.powsybl.ws.commons.security.AllowAllAuthorizationTestConfiguration;
 import org.gridsuite.config.server.dto.ParameterInfos;
 import org.gridsuite.config.server.repository.ParametersRepository;
 import org.hamcrest.Description;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.stream.binder.test.OutputDestination;
 import org.springframework.cloud.stream.binder.test.TestChannelBinderConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -36,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
  */
 @AutoConfigureWebTestClient
+@Import(AllowAllAuthorizationTestConfiguration.class)
 @EnableWebFlux
 @SpringBootTest(classes = {ConfigApplication.class, TestChannelBinderConfiguration.class})
 class ConfigTest {
