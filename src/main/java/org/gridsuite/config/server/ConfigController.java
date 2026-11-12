@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.gridsuite.config.server.dto.ParameterInfos;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,16 +45,16 @@ public class ConfigController {
     @Operation(summary = "get all configuration parameters for a user")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "All configuration parameters for the user")})
     @PreAuthorize("true")
-    public ResponseEntity<Flux<ParameterInfos>> getParameters(@RequestHeader("userId") String userId) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId));
+    public Flux<ParameterInfos> getParameters(@RequestHeader("userId") String userId) {
+        return configService.getConfigParameters(userId);
     }
 
     @GetMapping(value = "/applications/{appName}/parameters", produces = "application/json")
     @Operation(summary = "get all configuration parameters for a user and an application")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The list of configuration parameters for the application")})
     @PreAuthorize("true")
-    public ResponseEntity<Flux<ParameterInfos>> getParameters(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.getConfigParameters(userId, appName));
+    public Flux<ParameterInfos> getParameters(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName) {
+        return configService.getConfigParameters(userId, appName);
     }
 
     @GetMapping(value = "/applications/{appName}/parameters/{name}", produces = "application/json")
@@ -72,17 +71,19 @@ public class ConfigController {
     @Operation(summary = "update a configuration parameter for given name and value")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The parameter are updated")})
     @PreAuthorize("true")
-    public ResponseEntity<Mono<Void>> updateParameter(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName,
+    public Mono<ResponseEntity<Void>> updateParameter(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName,
                                                       @PathVariable(value = "name") String name, @RequestParam("value") String value) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateConfigParameter(userId, appName, name, value));
+        return configService.updateConfigParameter(userId, appName, name, value)
+            .thenReturn(ResponseEntity.ok().build());
     }
 
     @PutMapping(value = "/applications/{appName}/parameters", produces = "application/json")
     @Operation(summary = "update the  configuration parameters")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The parameters are updated")})
     @PreAuthorize("true")
-    public ResponseEntity<Mono<Void>> updateParameters(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName,
+    public Mono<ResponseEntity<Void>> updateParameters(@RequestHeader("userId") String userId, @PathVariable(value = "appName") String appName,
                                                       @RequestBody Map<String, Object> parameters) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(configService.updateConfigParameters(userId, appName, parameters));
+        return configService.updateConfigParameters(userId, appName, parameters)
+            .thenReturn(ResponseEntity.ok().build());
     }
 }
