@@ -6,6 +6,7 @@
  */
 package org.gridsuite.config.server;
 
+import com.powsybl.ws.commons.security.AllowAllAuthorizationTestConfiguration;
 import org.gridsuite.config.server.dto.ParameterInfos;
 import org.gridsuite.config.server.repository.ParametersRepository;
 import org.hamcrest.Description;
@@ -17,9 +18,11 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.stream.binder.test.OutputDestination;
 import org.springframework.cloud.stream.binder.test.TestChannelBinderConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
@@ -35,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
  */
 @AutoConfigureWebTestClient
+@Import(AllowAllAuthorizationTestConfiguration.class)
 @EnableWebFlux
 @SpringBootTest(classes = {ConfigApplication.class, TestChannelBinderConfiguration.class})
 class ConfigTest {
@@ -54,11 +58,11 @@ class ConfigTest {
     }
 
     @Test
+    @WithMockUser(username = "userId")
     void testCreateParameters() {
         //get all config parameters for 'foo' application -> expect empty list
         webTestClient.get()
                 .uri("/v1/applications/foo/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -71,14 +75,12 @@ class ConfigTest {
         //insert config parameter 'testKey' for 'foo' application
         webTestClient.put()
                 .uri("/v1/applications/foo/parameters/testKey?value=testValue")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk();
 
         //get all config parameters for 'foo' application and expect the added one
         webTestClient.get()
                 .uri("/v1/applications/foo/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -98,14 +100,12 @@ class ConfigTest {
         //update config parameter 'testKey' for 'foo' application
         webTestClient.put()
                 .uri("/v1/applications/foo/parameters/testKey?value=updatedValue")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk();
 
         //get all config parameters for 'foo' application and expect the updated one
         webTestClient.get()
                 .uri("/v1/applications/foo/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -127,14 +127,12 @@ class ConfigTest {
         //add another config parameter 'testKey2' for 'foo' application
         webTestClient.put()
                 .uri("/v1/applications/foo/parameters/testKey2?value=testValue2")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk();
 
         //get all config parameters for 'foo' application and expect the 2 params
         webTestClient.get()
                 .uri("/v1/applications/foo/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -153,11 +151,11 @@ class ConfigTest {
     }
 
     @Test
+    @WithMockUser(username = "userId")
     void testGetParameters() {
         //get all config parameters -> expect empty list
         webTestClient.get()
                 .uri("/v1/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -167,7 +165,6 @@ class ConfigTest {
         //get all common config parameters -> expect empty list
         webTestClient.get()
                 .uri("/v1/applications/common/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -177,7 +174,6 @@ class ConfigTest {
         //get all config parameters for 'bar' application -> expect empty list
         webTestClient.get()
                 .uri("/v1/applications/bar/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -190,7 +186,6 @@ class ConfigTest {
         //insert common config parameter 'commonParam'
         webTestClient.put()
                 .uri("/v1/applications/common/parameters/commonParam?value=value1")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk();
 
@@ -205,7 +200,6 @@ class ConfigTest {
         //insert config parameter 'specificParam' for 'bar' application
         webTestClient.put()
                 .uri("/v1/applications/bar/parameters/specificParam?value=value2")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk();
 
@@ -220,7 +214,6 @@ class ConfigTest {
         //get all commmon config parameters and expect the added one
         webTestClient.get()
                 .uri("/v1/applications/common/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -230,7 +223,6 @@ class ConfigTest {
         //get all config parameters for 'bar' application and expect the added one
         webTestClient.get()
                 .uri("/v1/applications/bar/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -240,7 +232,6 @@ class ConfigTest {
         //get a common config parameter
         webTestClient.get()
                 .uri("/v1/applications/common/parameters/commonParam")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -250,7 +241,6 @@ class ConfigTest {
         //get a specific parameter for 'bar' application
         webTestClient.get()
                 .uri("/v1/applications/bar/parameters/specificParam")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -260,14 +250,12 @@ class ConfigTest {
         //get an unknown common parameter
         webTestClient.get()
                 .uri("/v1/applications/common/parameters/specificParam")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isNoContent();
 
         //get an unknown parameter for 'bar' application
         webTestClient.get()
                 .uri("/v1/applications/bar/parameters/commonParam")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isNoContent();
 
@@ -312,11 +300,11 @@ class ConfigTest {
     }
 
     @Test
+    @WithMockUser(username = "userId")
     void testUpdateParameters() {
         //get all config parameters for 'foo' application -> expect empty list
         webTestClient.get()
                 .uri("/v1/applications/foo/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -330,7 +318,6 @@ class ConfigTest {
         //insert config parameter 'testKey1' for 'foo' application
         webTestClient.put()
                 .uri("/v1/applications/foo/parameters/testKey1?value=testValue1")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk();
 
@@ -345,7 +332,6 @@ class ConfigTest {
         //insert config parameter 'testKey2' for 'foo' application
         webTestClient.put()
                 .uri("/v1/applications/foo/parameters/testKey2?value=testValue2")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk();
 
@@ -360,7 +346,6 @@ class ConfigTest {
         //get all config parameters for 'foo' application and expect the added one
         webTestClient.get()
                 .uri("/v1/applications/foo/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -373,7 +358,6 @@ class ConfigTest {
         parameters.put("testKey2", "testUpdatedValue2");
         webTestClient.put()
                 .uri("/v1/applications/foo/parameters")
-                .header("userId", "userId")
                 .bodyValue(parameters)
                 .exchange()
                 .expectStatus().isOk();
@@ -383,7 +367,6 @@ class ConfigTest {
         //get all config parameters for 'foo' application and expect the updated one
         webTestClient.get()
                 .uri("/v1/applications/foo/parameters")
-                .header("userId", "userId")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -408,5 +391,4 @@ class ConfigTest {
 
         assertNull(output.receive(1000));
     }
-
 }

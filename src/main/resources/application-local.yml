@@ -9,3 +9,4 @@ spring:
 powsybl-ws:
   database:
     host: localhost
+
