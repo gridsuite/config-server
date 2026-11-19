@@ -6,6 +6,7 @@
  */
 package org.gridsuite.config.server;
 
+import com.powsybl.ws.commons.security.AllowAllAuthTestConfiguration;
 import org.gridsuite.config.server.dto.ParameterInfos;
 import org.gridsuite.config.server.repository.ParametersRepository;
 import org.hamcrest.Description;
