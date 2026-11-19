@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * @author Abdelsalem Hedhili <abdelsalem.hedhili at rte-france.com>
  */
 @AutoConfigureWebTestClient
-@Import(AllowAllAuthorizationTestConfiguration.class)
+@Import(AllowAllAuthTestConfiguration.class)
 @EnableWebFlux
 @SpringBootTest(classes = {ConfigApplication.class, TestChannelBinderConfiguration.class})
 class ConfigTest {
