@@ -37,8 +37,7 @@ class ReactiveEndpointSecurityTest {
         mappings.getHandlerMethods().forEach((info, handler) -> {
             Method method = handler.getMethod();
             Class<?> controller = handler.getBeanType();
-            if (!getControllerPackages().contains(controller.getPackageName())
-                || getExcludedControllers().contains(controller)) {
+            if (!getControllerPackages().contains(controller.getPackageName())) {
                 return;
             }
 
@@ -54,14 +53,6 @@ class ReactiveEndpointSecurityTest {
 
     private List<String> getControllerPackages() {
         return List.of("org.gridsuite.config.server");
-    }
-
-    /**
-     * Supervision endpoints are filtered by the gateway and are not directly accessible,
-     * so we don't need to check permissions for them.
-     */
-    private List<Class<?>> getExcludedControllers() {
-        return List.of();
     }
 
     private boolean hasSecurityAnnotation(Method method, Class<?> controller) {

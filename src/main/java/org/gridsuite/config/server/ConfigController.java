@@ -13,7 +13,6 @@ import org.gridsuite.config.server.dto.ParameterInfos;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -41,17 +40,12 @@ public class ConfigController {
         this.configService = configService;
     }
 
-    private Mono<String> currentUserId() {
-        return ReactiveSecurityContextHolder.getContext()
-            .map(context -> context.getAuthentication().getName());
-    }
-
     @GetMapping(value = "/parameters", produces = "application/json")
     @Operation(summary = "get all configuration parameters for a user")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "All configuration parameters for the user")})
     @PreAuthorize("true")
     public Flux<ParameterInfos> getParameters() {
-        return currentUserId().flatMapMany(configService::getConfigParameters);
+        return configService.getConfigParameters();
     }
 
     @GetMapping(value = "/applications/{appName}/parameters", produces = "application/json")
@@ -59,7 +53,7 @@ public class ConfigController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The list of configuration parameters for the application")})
     @PreAuthorize("true")
     public Flux<ParameterInfos> getParameters(@PathVariable(value = "appName") String appName) {
-        return currentUserId().flatMapMany(userId -> configService.getConfigParameters(userId, appName));
+        return configService.getConfigParameters(appName);
     }
 
     @GetMapping(value = "/applications/{appName}/parameters/{name}", produces = "application/json")
@@ -67,9 +61,9 @@ public class ConfigController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "The configuration parameter for the application")})
     @PreAuthorize("true")
     public Mono<ResponseEntity<ParameterInfos>> getParameter(@PathVariable(value = "appName") String appName, @PathVariable("name") String name) {
-        return currentUserId().flatMap(userId -> configService.getConfigParameter(userId, appName, name)
+        return configService.getConfigParameter(appName, name)
             .map(result -> ResponseEntity.ok().body(result))
-            .defaultIfEmpty(ResponseEntity.status(HttpStatus.NO_CONTENT).build()));
+            .defaultIfEmpty(ResponseEntity.status(HttpStatus.NO_CONTENT).build());
     }
 
     @PutMapping(value = "/applications/{appName}/parameters/{name}", produces = "application/json")
@@ -78,8 +72,8 @@ public class ConfigController {
     @PreAuthorize("true")
     public Mono<ResponseEntity<Void>> updateParameter(@PathVariable(value = "appName") String appName,
                                                       @PathVariable(value = "name") String name, @RequestParam("value") String value) {
-        return currentUserId().flatMap(userId -> configService.updateConfigParameter(userId, appName, name, value)
-            .thenReturn(ResponseEntity.ok().build()));
+        return configService.updateConfigParameter(appName, name, value)
+            .thenReturn(ResponseEntity.ok().build());
     }
 
     @PutMapping(value = "/applications/{appName}/parameters", produces = "application/json")
@@ -88,7 +82,7 @@ public class ConfigController {
     @PreAuthorize("true")
     public Mono<ResponseEntity<Void>> updateParameters(@PathVariable(value = "appName") String appName,
                                                       @RequestBody Map<String, Object> parameters) {
-        return currentUserId().flatMap(userId -> configService.updateConfigParameters(userId, appName, parameters)
-            .thenReturn(ResponseEntity.ok().build()));
+        return configService.updateConfigParameters(appName, parameters)
+            .thenReturn(ResponseEntity.ok().build());
     }
 }
