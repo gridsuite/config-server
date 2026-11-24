@@ -9,10 +9,8 @@ package org.gridsuite.config.server.config;
 import com.powsybl.ws.commons.security.restclient.HeaderForwardingInterceptor;
 import com.powsybl.ws.commons.security.restclient.RestClientSecurityFilter;
 import com.powsybl.ws.commons.springboot.OpenApiCustomization;
-import com.powsybl.ws.commons.springboot.PowsyblWsCommonProperties;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -29,7 +27,6 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 @AutoConfiguration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableConfigurationProperties({ PowsyblWsCommonProperties.class })
 public class RestClientSecurityAutoConfiguration {
 
     @Bean(name = "userContextSwaggerConfiguration")
