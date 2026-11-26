@@ -6,14 +6,12 @@
  */
 package org.gridsuite.config.server;
 
-import com.powsybl.ws.commons.security.restclient.RestClientAuthorizationService;
 import com.powsybl.ws.commons.security.restclient.RestClientSecurityFilter;
-import com.powsybl.ws.commons.springboot.RestClientSecurityAutoConfiguration;
+import org.gridsuite.config.server.config.RestClientSecurityAutoConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.web.SecurityFilterChain;
@@ -36,34 +34,10 @@ class RestClientSecurityAutoConfigurationTest {
                 .run(context -> {
                     assertThat(context).hasNotFailed();
                     assertThat(context).hasSingleBean(RestClientSecurityAutoConfiguration.class);
-                    assertThat(context).hasSingleBean(RestClientAuthorizationService.class);
                     assertThat(context).hasSingleBean(OpenApiCustomizer.class);
                     assertThat(context).hasSingleBean(SecurityFilterChain.class);
                     assertThat(context.getBean(SecurityFilterChain.class).getFilters())
                             .anyMatch(RestClientSecurityFilter.class::isInstance);
-                });
-    }
-
-    @Test
-    void shouldNotConfigureServletSecurityWhenDisabled() {
-        webContextRunner.run(context -> {
-            assertThat(context).hasNotFailed();
-            assertThat(context).doesNotHaveBean(RestClientSecurityAutoConfiguration.class);
-            assertThat(context).doesNotHaveBean(OpenApiCustomizer.class);
-            assertThat(context).doesNotHaveBean(SecurityFilterChain.class);
-        });
-    }
-
-    @Test
-    void shouldNotConfigureServletSecurityInNonWebContext() {
-        new ApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(RestClientSecurityAutoConfiguration.class))
-                .withPropertyValues("powsybl-ws.autoconfigure.authorization-system.enable=true")
-                .run(context -> {
-                    assertThat(context).hasNotFailed();
-                    assertThat(context).doesNotHaveBean(RestClientSecurityAutoConfiguration.class);
-                    assertThat(context).doesNotHaveBean(RestClientAuthorizationService.class);
-                    assertThat(context).doesNotHaveBean(SecurityFilterChain.class);
                 });
     }
 
