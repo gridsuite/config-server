@@ -11,6 +11,7 @@ import org.gridsuite.config.server.repository.ParameterEntity;
 import org.gridsuite.config.server.repository.ParametersRepository;
 import org.gridsuite.config.server.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -36,22 +37,28 @@ public class ConfigService {
         this.configRepository = configRepository;
     }
 
-    Flux<ParameterInfos> getConfigParameters(String userId) {
-        return configRepository.findAllByUserId(userId).map(ParameterEntity::toConfigInfos);
+    private Mono<String> currentUserId() {
+        return ReactiveSecurityContextHolder.getContext()
+            .map(context -> context.getAuthentication().getName());
     }
 
-    Flux<ParameterInfos> getConfigParameters(String userId, String appName) {
-        return configRepository.findAllByUserIdAndAppName(userId, appName).map(ParameterEntity::toConfigInfos);
+    Flux<ParameterInfos> getConfigParameters() {
+        return currentUserId().flatMapMany(userId -> configRepository.findAllByUserId(userId).map(ParameterEntity::toConfigInfos));
     }
 
-    Mono<ParameterInfos> getConfigParameter(String userId, String appName, String name) {
-        return configRepository.findByUserIdAndAppNameAndName(userId, appName, name).map(ParameterEntity::toConfigInfos);
+    Flux<ParameterInfos> getConfigParameters(String appName) {
+        return currentUserId().flatMapMany(userId -> configRepository.findAllByUserIdAndAppName(userId, appName).map(ParameterEntity::toConfigInfos));
     }
 
-    Mono<Void> updateConfigParameter(String userId, String appName, String name, String value) {
-        return updateParameter(userId, appName, name, value)
-                .doOnSuccess(p -> notificationService.emitConfigParameterChanges(userId, appName, name))
-                .then();
+    Mono<ParameterInfos> getConfigParameter(String appName, String name) {
+        return currentUserId().flatMap(userId ->
+            configRepository.findByUserIdAndAppNameAndName(userId, appName, name).map(ParameterEntity::toConfigInfos));
+    }
+
+    Mono<Void> updateConfigParameter(String appName, String name, String value) {
+        return currentUserId().flatMap(userId -> updateParameter(userId, appName, name, value)
+            .doOnSuccess(p -> notificationService.emitConfigParameterChanges(userId, appName, name))
+            .then());
     }
 
     private Mono<ParameterInfos> updateParameter(String userId, String appName, String name, String value) {
@@ -69,9 +76,12 @@ public class ConfigService {
                 .map(ParameterEntity::toConfigInfos);
     }
 
-    Mono<Void> updateConfigParameters(String userId, String appName, Map<String, Object> parameters) {
-        return Flux.fromIterable(parameters.entrySet())
-                .flatMap(entry -> updateConfigParameter(userId, appName, entry.getKey(), entry.getValue().toString()))
-                .then();
+    Mono<Void> updateConfigParameters(String appName, Map<String, Object> parameters) {
+        return currentUserId().flatMap(userId ->
+            Flux.fromIterable(parameters.entrySet())
+                .flatMap(entry ->
+                    updateParameter(userId, appName, entry.getKey(), entry.getValue().toString())
+                        .doOnSuccess(p -> notificationService.emitConfigParameterChanges(userId, appName, entry.getKey())))
+                        .then());
     }
 }
